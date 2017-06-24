@@ -1,11 +1,9 @@
 import React from 'react'
-import {connect} from 'react-redux'
 import {Toolbar, ToolbarGroup, ToolbarSeparator,
         ToolbarTitle} from 'material-ui/Toolbar'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 
-import TextField from 'material-ui/TextField'
 import Slider from 'material-ui/Slider'
 import Paper from 'material-ui/Paper'
 import IconButton from 'material-ui/IconButton'
@@ -16,20 +14,16 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
 import ZoomIcon from 'material-ui/svg-icons/action/search'
-import RefreshIcon from 'material-ui/svg-icons/action/cached'
 import EditIcon from 'material-ui/svg-icons/editor/mode-edit'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
 import SvgIcon from 'material-ui/SvgIcon';
 
-import {SMOOTHNESS, SEED} from '../actions'
-import {randomStr} from '../util'
-
 injectTapEventPlugin();
 
-class MapToolbar extends React.Component{
+class _MapToolbar extends React.Component{
   constructor(props){
     super(props)
-    this.state = {smoothness: 0.5, seed: "test", active: "", subactive: ""}
+    this.state = {smoothness: 0.5, active: "", subactive: ""}
   }
   setActive(active,subactive=""){
     this.setState(state => {
@@ -72,15 +66,9 @@ class MapToolbar extends React.Component{
   onSmoothness(event,value){
     this.setState({smoothness: value})
   }
-  onSeed(event,value){
-    this.setState({seed: value})
-  }
 
   updateTerrainDialog(){
-    this.setState({
-      smoothness: this.props.map.get("smoothness"),
-      seed: this.props.map.get("seed")
-    })
+    this.setState({smoothness: this.props.map.get("smoothness")})
   }
 
   renderTerrainDialog(){
@@ -91,18 +79,8 @@ class MapToolbar extends React.Component{
             <p>Smoothness</p>
             <Slider value={this.state.smoothness}
                     onChange={(e,v) => this.onSmoothness(e,v)}/>
-            <p>Seed</p>
-            <TextField id={"mapseed"} value={this.state.seed}
-                       onChange={(e,v) => this.onSeed(e,v)}/>
-            <IconButton onClick={() => this.onSeed(null,randomStr())}>
-              <RefreshIcon/>
-            </IconButton>
-            <br/>
-            <RaisedButton primary={true}
-                          onClick={() => {
-                              this.props.onSmoothness(this.state.smoothness)
-                              this.props.onSeed(this.state.seed)
-                          }}>
+            <RaisedButton label="Primary"
+                          onClick={() => this.props.onSmoothness(this.state.smoothness)}>
               Render
             </RaisedButton>
           </div>
@@ -114,7 +92,7 @@ class MapToolbar extends React.Component{
   render(){
     return (
       <MuiThemeProvider>
-        <Paper zDepth={2} style={{width: "50vw"}}>
+        <div>
           <Toolbar>
             <ToolbarGroup firstChild={true}>
               <IconButton onClick={() => this.setActive("pan")}>
@@ -143,19 +121,14 @@ class MapToolbar extends React.Component{
             </ToolbarGroup>
           </Toolbar>
           {this.renderTerrainDialog()}
-        </Paper>
+        </div>
       </MuiThemeProvider>
     )
   }
 }
 
-export default connect(state => {return state},dispatch => {
-  return {
-    onSmoothness: (value) => {
-      dispatch({type: SMOOTHNESS, value: value})
-    },
-    onSeed: (value) => {
-      dispatch({type: SEED, value: value})
-    }
+export default const MapView = connect(state => return state,dispatch => {
+  onSmoothness: (value) => {
+    dispatch({type: "SMOOTHNESSS", value: value})
   }
-})(MapToolbar)
+})(_MapView)

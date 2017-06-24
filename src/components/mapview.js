@@ -1,6 +1,9 @@
 import SimplexNoise from 'simplex-noise'
 import MersenneTwister from 'mersenne-twister'
-import {Point, Rectangle, Path, Color} from 'paper'
+import {Map, is} from 'immutable'
+import sha1 from 'sha-1'
+import paper, {Point, Rectangle, Path, Color} from 'paper'
+import $ from 'jquery'
 
 function hexX(a,b){
   return a + 0.5*Math.abs(b % 2)
@@ -12,7 +15,7 @@ function hexY(a,b){
 function terrain(wrap,scale,depth,H,seed){
   let noises = new Array(depth)
   
-  let rng = new MersenneTwister(1983)
+  let rng = new MersenneTwister(seed)
   for(let i=0;i<depth;i++)
     noises[i] = new SimplexNoise(() => rng.random())
 
@@ -42,14 +45,47 @@ function terrain(wrap,scale,depth,H,seed){
 }
 
 export default class MapView{
-  constructor(canvas){
+  constructor(canvas,store){
+    this.store = store
+    this.map = Map({})
+    
+    $(document).ready(() => {
+      canvas.width = $(window).width()
+      canvas.height = $(window).height()
+      paper.setup(canvas);
+      paper.view.translate(canvas.width/2,canvas.height/2)
+
+      $(window).resize(() => {
+        paper.view.viewSize.width = $(window).width();
+        paper.view.viewSize.height = $(window).height();
+        paper.view.center = new Point(0,0)
+      })
+      this.update()
+    })
+
+    store.subscribe(() => this.update())
+  }
+
+  update(){
+    if(is(this.map,this.store.getState().map)) return;
+    this.map = this.store.getState().map
+    
+    // for now, just remove all elements from data
+    if(this.data !== undefined){
+      for(let i;i<this.data.length;i++){
+        this.data.remove()
+      }
+    }
+
     let height = this.height = 60
     let width = this.width = 100
-    this.canvas = canvas    
+    
     this.data = new Array(height*height)
     this.scale = 10
-    this.center = new Point(0,0)
-    this.gen = terrain(width,width/2,10,0.60,1983)
+
+    let H = Math.log((1-this.map.get("smoothness"))*5+1) / Math.log(6)
+    let seed = parseInt(sha1(this.map.get("seed")).slice(8))
+    this.gen = terrain(width,width/2,10,H,seed)
 
     let maxd = Math.max(hexX(width/2,height/2),hexY(width/2,height/2))
     for(let yi=0;yi<height;yi++){

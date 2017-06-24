@@ -10,22 +10,31 @@ The steps are
    - [x] use a fixed set of heights and render each as an appropriate color
    - [x] convert to hexes
    - [x] generate random heights using gradient interpolation across multiple scales
-2. Create an interface to manipulate the paramters of generation
+2. Create an interface to manipulate the paramters of map generation
    - [ ] setup a single slider setting using react and material-ui - terrain smoothness
+       * [x] create the initial interface
+       * [ ] implement redux state mangement and render a new map
    - [ ] setup other controls
        * [ ] randomization seed
-       * [ ] zones (deep sea, ocean, coast, eacha  different color)
+       * [ ] zones (deep sea, ocean, coast, each a different color)
+       * [ ] size of map
 
 3. create an interface to zoom in and explore the elevations.
+   - [ ] create zoom tool - touch interface and clickable button
+   - [ ] create pan tool - touch interface and clickable button
 
-# Stage 2: improved world map generation (maybe 3)
+# Stage 2 (optional): improved world map generation
 
-In this stage I add more sophisticated generation of the world map, to allow for both more interesting terrain, and to allow more control of its generation.
+In this stage I add more sophisticated generation of the world map, to allow for
+both more interesting terrain, and to allow more control of its generation.
+
+I do this stage now only if I'm not happy with the kind of terrain I'm getting
+with the default approach.
 
 # Stage 3: improved graphics (maybe 2)
 
-In this stage I work on cleaning up the appearance of the program to make
-maps, cities and dungeons more attractive.
+In this stage I work on an initial cleaning up the appearance of the map
+to make it look nicer.
 
 # Stage 3.1: file management
 
@@ -36,11 +45,19 @@ parameters plus the particular view we're looking at
 
 2. be able to save a view as an image (using .toDataURL())
 
-# Stage 4: simple location generation
+# Stage 4: more improved world map generation
+
+Anything I didn't finish in stage two, I now finalize here.
+
+# Stage 5: simple location generation
 
 In this stage I create a method to generate cities and dungeons on the map.
 
-# Stage 5: detailed location generation
+# Stage 6: detailed location generation
 
 In this stage I make it possible to zoom in to a particular city or dungeons and generate
 details of that location.
+
+# Stage 7: improved graphics
+
+In this final stage I improve the graphics for location and dungeon generation.

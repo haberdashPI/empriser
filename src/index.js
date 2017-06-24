@@ -1,27 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import paper, {Point} from 'paper'
-import $ from 'jquery'
+
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
 
 import './index.less'
-import MapView from './components/mapview.js'
-import MapToolbar from './components/toolbar.js'
+import MapView from './components/mapview'
+import MapToolbar from './components/toolbar'
 
+import earhartReducer from './reducers'
 
-$(document).ready(() => {
-  let canvas = document.getElementById('view')
-  canvas.width = $(window).width()
-  canvas.height = $(window).height()
-  paper.setup(canvas);
-  paper.view.translate(canvas.width/2,canvas.height/2)
-  let map = new MapView(canvas);
+let earhartStore = createStore(earhartReducer)
 
-  $(window).resize(() => {
-    paper.view.viewSize.width = $(window).width();
-    paper.view.viewSize.height = $(window).height();
-    paper.view.center = new Point(0,0)
-  })
-})
-
-let toolbar = <MapToolbar/>
-ReactDOM.render(toolbar,document.getElementById('ui-view'))
+new MapView(document.getElementById('view'),earhartStore);
+ReactDOM.render(<Provider store={earhartStore}><MapToolbar/></Provider>,
+                document.getElementById('ui-view'))
