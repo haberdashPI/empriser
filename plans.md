@@ -9,7 +9,7 @@ The steps are
 1. Generate a static view with randomized elevations as points
    - [x] use a fixed set of heights and render each as an appropriate color
    - [x] convert to hexes
-   - [ ] generate random heights using gradient interpolation across multiple scales
+   - [x] generate random heights using gradient interpolation across multiple scales
 2. Create an interface to manipulate the paramters of generation
    - [ ] setup a single slider setting using react and material-ui - terrain smoothness
    - [ ] setup other controls
