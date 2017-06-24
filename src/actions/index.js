@@ -1,2 +1,1 @@
-export const SMOOTHNESS = "SMOOTHNESS"
-export const SEED = "SEED"
+export const TERRAIN_UPDATE = "TERRAIN_UPDATE"

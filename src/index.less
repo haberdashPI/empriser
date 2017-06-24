@@ -6,15 +6,49 @@
 
 #ui-view{
     position: absolute;
-    left: 10pt;
-    top: 10pt;
+    left: 2em;
+    top: 2em;
+    width: 30em;
+    max-width: 80vw;
     z-index: 10;
 }
 
 terrain-view{
     position: absolute;
-    width: 50vw;
-    height: 30pt;
-    top: 25pt;
-    left: 10pt;
+    width: 30em;
+    max-width: 80vw;
+    height: 1em;
+    top: 1em;
+    left: 1em;
 }
+
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
+ 
+.spinner:before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  border-top: 2px solid #07d;
+  border-right: 2px solid transparent;
+  animation: spinner .6s linear infinite;
+}
+
+#spinner-view{
+    z-index: 1;
+    position: absolute;
+    left: 0pt;
+    right: 0pt;
+    margin: 25vw;
+    width: 50vw;
+    height: 50vw;
+}
+

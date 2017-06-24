@@ -69,7 +69,17 @@ export default class MapView{
   update(){
     if(is(this.map,this.store.getState().map)) return;
     this.map = this.store.getState().map
-    
+
+    // TODO: split out map generation and vector redering code,
+    // generate map offline (show spinner) and then render vectors
+    setTimeout(() => {
+      $('#spinner-view').addClass('spinner')
+      this.generateMap()
+      $('#spinner-view').removeClass('spinner')
+    }, 0);
+  }
+
+  generateMap(){
     // for now, just remove all elements from data
     if(this.data !== undefined){
       for(let i;i<this.data.length;i++){
@@ -77,8 +87,8 @@ export default class MapView{
       }
     }
 
-    let height = this.height = 60
-    let width = this.width = 100
+    let height = this.map.get("height")
+    let width = this.map.get("width")
     
     this.data = new Array(height*height)
     this.scale = 10
