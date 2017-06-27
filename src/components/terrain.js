@@ -16,18 +16,23 @@ import {randomStr} from '../util'
 class TerrainDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {map: this.props.map}
+    this.state = {terrain: this.props.terrain}
   }
 
   componentWillMount(){
-    this.setState({map: this.props.map})
+    this.setState({terrain: this.props.terrain})
   }
 
-  updateValue(key,value){
-    this.setState({map: this.state.map.set(key,value)})
+  setTerrain(key,value){
+    this.setState({terrain: this.state.terrain.set(key,value)})
+  }
+  terrain(key){
+    return this.state.terrain.get(key)
   }
 
-  checkNumber(name,str,isint=true,min=Number.NEGATIVE_INFINITY,max=Number.POSITIVE_INFINITY){
+  checkNumber(name,str,isint=true,
+              min=Number.NEGATIVE_INFINITY,
+              max=Number.POSITIVE_INFINITY){
     if(!isNaN(str)){
       if(str < min || str > max)
         return name+" must be a number from "+min+" to "+max+"."
@@ -43,41 +48,43 @@ class TerrainDialog extends React.Component{
   render(){
     return (
       <Paper zDepth={2} className={"terrain-view"}>
-        <div style={{padding: "12pt"}}>
+        <div style={{padding: "12pt"}}> 
+          <h3 style={{margin: 0}}>Terrain</h3>
           <TextField floatingLabelText={"smoothness"}
-                     value={this.state.map.get("smoothness")}
-                     onChange={(e,v) => this.updateValue('smoothness',v)}
+                     value={this.terrain("smoothness")}
+                     onChange={(e,v) => this.setTerrain('smoothness',v)}
                      errorText={this.checkNumber("smoothness",
-                                                 this.state.map.get("smoothness"),
+                                                 this.terrain("smoothness"),
                                                  false,0,1)}/>
-          <Slider value={this.state.map.get("smoothness")} sliderStyle={{margin: "0.2em"}}
-                  onChange={(e,v) => this.updateValue('smoothness',v)}/>
+          <Slider value={this.terrain("smoothness")}
+                  sliderStyle={{margin: "0.2em"}}
+                  onChange={(e,v) => this.setTerrain('smoothness',v)}/>
           <TextField floatingLabelText={"Seed"}
-                     value={this.state.map.get("seed")}
-                     onChange={(e,v) => this.updateValue("seed",v)}/>
-          <IconButton onClick={() => this.updateValue("seed",randomStr())}>
+                     value={this.terrain("seed")}
+                     onChange={(e,v) => this.setTerrain("seed",v)}/>
+          <IconButton onClick={() => this.setTerrain("seed",randomStr())}>
             <RefreshIcon/>
           </IconButton>
           <br/>
 
           <TextField floatingLabelText={"width"}
-                     value={this.state.map.get("width")}
+                     value={this.terrain("width")}
                      style={{width: "5em"}}          
-                     onChange={(e,v) => this.updateValue("width",v)}
+                     onChange={(e,v) => this.setTerrain("width",v)}
                      errorText={this.checkNumber("width",
-                                                 this.state.map.get("width"))}/>
+                                                 this.terrain("width"))}/>
           <span style={{padding: "0.5em"}}>x</span>
           <TextField floatingLabelText={"height"}
-                     value={this.state.map.get("height")}
+                     value={this.terrain("height")}
                      style={{width: "5em"}}
-                     onChange={(e,v) => this.updateValue("height",v)}
+                     onChange={(e,v) => this.setTerrain("height",v)}
                      errorText={this.checkNumber("height",
-                                                 this.state.map.get("height"))}/>
+                                                 this.terrain("height"))}/>
 
           <RaisedButton style={{position: "absolute", bottom: "1em", right: "1em"}}
                         primary={true}
                         onClick={() =>
-                          this.props.onTerrainUpdate(this.state.map)}>
+                          this.props.onTerrainUpdate(this.state.terrain)}>
             Render
           </RaisedButton>
           
@@ -87,7 +94,9 @@ class TerrainDialog extends React.Component{
   }
 }
 
-export default connect(state => {return state},dispatch => {
+export default connect(state => {
+  return {terrain: state.map.settings.get('terrain')}
+},dispatch => {
   return {
     onTerrainUpdate: (terrain) => {
       dispatch({type: TERRAIN_UPDATE, value: terrain})

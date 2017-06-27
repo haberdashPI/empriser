@@ -17,11 +17,17 @@ The steps are
    - [x] setup other controls
        * [x] randomization seed
        * [x] refactor terrain dialog
-       * [ ] refactor map generation: split out terrain and rendering
-       * [ ] refactor data organization split terrain and zones
-       * [ ] add a spinner during terrain generation
-       * [ ] zones (deep sea, ocean, coast, each a different color)
        * [x] size of map
+       * [x] refactor map generation: split out terrain and rendering       
+       * [x] refactor data organization split terrain and zones
+       * [ ] re-map histogram (intergate with zone "ocean area, coast, etc..."
+             and select % of map and depth for each type)
+             . [ ] build dialog interface
+             . [ ] implement rendering
+       * [ ] improve zone icon
+       * [ ] allow different display modes
+       * [ ] zones (deep sea, ocean, coast, each a different color)
+       * [ ] add a spinner during terrain generation
 
 3. create an interface to zoom in and explore the elevations.
    - [ ] create zoom tool - touch interface and clickable button
@@ -49,6 +55,8 @@ parameters plus the particular view we're looking at
 
 In this stage I work on an initial cleaning up the appearance of the map
 to make it look nicer.
+
+TODO: use PIXI instead of Paper.js
 
 # Stage 5: more improved world map generation
 

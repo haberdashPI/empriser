@@ -15,7 +15,9 @@ import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
 import ZoomIcon from 'material-ui/svg-icons/action/search'
 import EditIcon from 'material-ui/svg-icons/editor/mode-edit'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
-import SvgIcon from 'material-ui/SvgIcon';
+import TerrainIcon from 'material-ui/svg-icons/image/landscape'
+import ZoneIcon from 'material-ui/svg-icons/image/panorama'
+//import SvgIcon from 'material-ui/SvgIcon';
 
 import TerrainDialog from './terrain'
 
@@ -55,9 +57,7 @@ export default class MapToolbar extends React.Component{
         <IconButton onClick={() => {
             this.setActive("edit","terrain")
         }}>
-          <SvgIcon color={this.iconColor("edit","terrain")}>
-            <path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/>
-          </SvgIcon>
+          <TerrainIcon color={this.iconColor("edit","terrain")}/>
         </IconButton>
       </ToolbarGroup>
     )
