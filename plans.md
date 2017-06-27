@@ -6,6 +6,8 @@ In this stage I create a working world map generator. It isn't fancy: I just gen
 
 The steps are
 
+TODO: fix validation so bad values are not passed to upate
+
 1. Generate a static view with randomized elevations as points
    - [x] use a fixed set of heights and render each as an appropriate color
    - [x] convert to hexes
@@ -22,17 +24,19 @@ The steps are
        * [x] refactor data organization split terrain and zones
        * [ ] re-map histogram (intergate with zone "ocean area, coast, etc..."
              and select % of map and depth for each type)
-             . [ ] build dialog interface
+             . [-] build dialog interface (left: adjust others and limit range
+                   as needed)
              . [ ] implement rendering
-       * [ ] improve zone icon
-       * [ ] allow different display modes
-       * [ ] zones (deep sea, ocean, coast, each a different color)
-       * [ ] add a spinner during terrain generation
+       * [ ] allow different display modes (terrain, zones, etc...)
+       * [ ] improve zone icon (customize in illlustrator and create svgicon) 
+       * [ ] add *very* simple temperature and moister cotrol
+       * [ ] add a spinner during terrain generation??
 
-3. create an interface to zoom in and explore the elevations.
+3. create an interface to zoom in and explore the map
    - [ ] create zoom tool - touch interface and clickable button
    - [ ] create pan tool - touch interface and clickable button
    - [ ] display the exact coordinates and scale to allow easy recovery
+   - [ ] display a scale marker to the bottom right (allow scale defintion)
 
 # Stage 2 (optional): improved world map generation
 
@@ -51,12 +55,14 @@ parameters plus the particular view we're looking at
 
 2. be able to save a view as an image (using .toDataURL())
 
+3. host the resulting website on github
+
 # Stage 4: improved graphics (maybe 2)
 
 In this stage I work on an initial cleaning up the appearance of the map
 to make it look nicer.
 
-TODO: use PIXI instead of Paper.js
+switch from Paper.j to PIXI
 
 # Stage 5: more improved world map generation
 
@@ -64,12 +70,15 @@ Anything I didn't finish in stage two, I now finalize here.
 
 # Stage 6: simple location generation
 
-In this stage I create a method to generate cities and dungeons on the map.
+In this stage I create a method to generate locations for cities and dungeons on the map.
 
 # Stage 7: detailed location generation
 
 In this stage I make it possible to zoom in to a particular city or dungeons and generate
 details of that location.
+
+This is essentially an new application within the world generation, and will
+ likely involve a separate plan document.
 
 # Stage 8: improved graphics
 

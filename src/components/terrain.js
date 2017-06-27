@@ -11,7 +11,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
 import {TERRAIN_UPDATE} from '../actions'
-import {randomStr} from '../util'
+import {randomStr,checkNumber} from '../util'
 
 class TerrainDialog extends React.Component{
   constructor(props){
@@ -30,21 +30,6 @@ class TerrainDialog extends React.Component{
     return this.state.terrain.get(key)
   }
 
-  checkNumber(name,str,isint=true,
-              min=Number.NEGATIVE_INFINITY,
-              max=Number.POSITIVE_INFINITY){
-    if(!isNaN(str)){
-      if(str < min || str > max)
-        return name+" must be a number from "+min+" to "+max+"."
-      else if(isint && str % 1 !== 0)
-        return name+" must be a whole number"
-      else
-        return ""
-    }
-    else
-      return name+" must be a number"
-  }
-
   render(){
     return (
       <Paper zDepth={2} className={"terrain-view"}>
@@ -53,7 +38,7 @@ class TerrainDialog extends React.Component{
           <TextField floatingLabelText={"smoothness"}
                      value={this.terrain("smoothness")}
                      onChange={(e,v) => this.setTerrain('smoothness',v)}
-                     errorText={this.checkNumber("smoothness",
+                     errorText={checkNumber("smoothness",
                                                  this.terrain("smoothness"),
                                                  false,0,1)}/>
           <Slider value={this.terrain("smoothness")}
@@ -71,14 +56,14 @@ class TerrainDialog extends React.Component{
                      value={this.terrain("width")}
                      style={{width: "5em"}}          
                      onChange={(e,v) => this.setTerrain("width",v)}
-                     errorText={this.checkNumber("width",
+                     errorText={checkNumber("width",
                                                  this.terrain("width"))}/>
           <span style={{padding: "0.5em"}}>x</span>
           <TextField floatingLabelText={"height"}
                      value={this.terrain("height")}
                      style={{width: "5em"}}
                      onChange={(e,v) => this.setTerrain("height",v)}
-                     errorText={this.checkNumber("height",
+                     errorText={checkNumber("height",
                                                  this.terrain("height"))}/>
 
           <RaisedButton style={{position: "absolute", bottom: "1em", right: "1em"}}

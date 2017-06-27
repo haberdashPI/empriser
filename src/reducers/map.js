@@ -15,8 +15,8 @@ const initial_state = {
       height: 60
     },
     zones: {
-      depths: [0.1, 0.1, 0.3, 0.5],
-      percentages: [0.5, 0.2, 0.1, 0.2]
+      depth: [0.1, 0.1, 0.3, 0.5],
+      percent: [0.5, 0.2, 0.1, 0.2]
     },
     colorby: "terrain"
   }),

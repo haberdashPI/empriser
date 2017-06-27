@@ -20,6 +20,7 @@ import ZoneIcon from 'material-ui/svg-icons/image/panorama'
 //import SvgIcon from 'material-ui/SvgIcon';
 
 import TerrainDialog from './terrain'
+import ZoneDialog from './zone'
 
 injectTapEventPlugin();
 
@@ -59,6 +60,11 @@ export default class MapToolbar extends React.Component{
         }}>
           <TerrainIcon color={this.iconColor("edit","terrain")}/>
         </IconButton>
+        <IconButton onClick={() => {
+            this.setActive("edit","zone")
+        }}>
+          <ZoneIcon color={this.iconColor("edit","zone")}/>
+        </IconButton>
       </ToolbarGroup>
     )
   }
@@ -96,6 +102,8 @@ export default class MapToolbar extends React.Component{
           </Toolbar>
           {(this.state.active === "edit" && this.state.subactive === "terrain") ?
            <TerrainDialog/> : null}
+          {(this.state.active === "edit" && this.state.subactive === "zone") ?
+           <ZoneDialog/> : null}
         </Paper>
       </MuiThemeProvider>
     )

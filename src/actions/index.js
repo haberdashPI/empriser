@@ -1,1 +1,2 @@
 export const TERRAIN_UPDATE = "TERRAIN_UPDATE"
+export const ZONE_UPDATE = "ZONE_UPDATE"

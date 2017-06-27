@@ -9,3 +9,17 @@ export function hexY(a,b){
   return b * Math.sqrt(3/4)
 }
 
+export function checkNumber(name,str,isint=true,
+            min=Number.NEGATIVE_INFINITY,
+            max=Number.POSITIVE_INFINITY){
+  if(!isNaN(str)){
+    if(str < min || str > max)
+      return name+" must be a number from "+min+" to "+max+"."
+    else if(isint && str % 1 !== 0)
+      return name+" must be a whole number"
+    else
+      return ""
+  }
+  else
+    return name+" must be a number"
+}
