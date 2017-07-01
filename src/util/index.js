@@ -14,9 +14,9 @@ export function checkNumber(name,str,isint=true,
             max=Number.POSITIVE_INFINITY){
   if(!isNaN(str)){
     if(str < min || str > max)
-      return name+" must be a number from "+min+" to "+max+"."
+      return name+" must be > "+min+" and < "+max+"."
     else if(isint && str % 1 !== 0)
-      return name+" must be a whole number"
+      return name+" must be an integer"
     else
       return ""
   }

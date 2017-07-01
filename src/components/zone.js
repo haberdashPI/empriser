@@ -1,7 +1,9 @@
 import React from 'react'
 import {connect} from 'react-redux'
+import _ from 'underscore'
 
-import {Tabs, Tab} from 'material-ui/Tabs'
+import {Table,TableBody,TableHeader,TableHeaderColumn,
+        TableRow,TableRowColumn} from 'material-ui/Table';
 import TextField from 'material-ui/TextField'
 import Slider from 'material-ui/Slider'
 import Paper from 'material-ui/Paper'
@@ -11,6 +13,25 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import {ZONE_UPDATE} from '../actions'
 import {checkNumber} from '../util'
+
+const zones = ["Ocean","Land","Hills","Mountains"]
+
+function updatePercentsFn(index,value){
+  let bValue = Math.min(1,Math.max(0,value))
+  return (percents) => {
+    return percents.withMutations(percents => {
+      percents = percents.set(index,bValue)
+      let delta = (1 - percents.reduce((x,y) => x+y))/(percents.count()-1)
+        
+        for(let i=0;i<percents.count();i++){
+          if(i != index){
+          percents = percents.update(i,x => Math.min(1,Math.max(0,x + delta)))
+        }
+      }
+      return percents
+    })
+  }
+}
 
 class ZoneDialog extends React.Component{
   constructor(props){
@@ -22,7 +43,12 @@ class ZoneDialog extends React.Component{
   }
 
   setZone(keys,value){
-    this.setState({zones: this.state.zones.setIn(keys,value)})
+    if(keys[0] == 'percent')
+      this.setState({
+        zones: this.state.zones.update('percent',
+                                       updatePercentsFn(keys[1],value))})
+    else
+      this.setState({zones: this.state.zones.setIn(keys,value)})
   }
   zone(keys){
     return this.state.zones.getIn(keys)
@@ -33,89 +59,38 @@ class ZoneDialog extends React.Component{
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}>
           <h3 style={{margin: 0, marginBottom: "1em"}}>Zones</h3>
-          <Tabs>
-            <Tab label="Ocean">
-              <TextField floatingLabelText={"% of map"}
-                         value={this.zone(["percent",0])}
-                         onChange={(e,v) => this.setZone(['percent',0],v)}
-                         errorText={checkNumber("percentage",
-                                                this.zone(["percent",0]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["percent",0])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['percent',0],v)}/>
-              <TextField floatingLabelText={"depth"}
-                         value={this.zone(["depth",0])}
-                         onChange={(e,v) => this.setZone(['depth',0],v)}
-                         errorText={checkNumber("depth",
-                                                this.zone(["depth",0]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["depth",0])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['depth',0],v)}/>
-            </Tab>
-            <Tab label="Land">
-              <TextField floatingLabelText={"% of map"}
-                         value={this.zone(["percent",1])}
-                         onChange={(e,v) => this.setZone(['percent',1],v)}
-                         errorText={checkNumber("percentage",
-                                                this.zone(["percent",1]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["percent",1])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['percent',1],v)}/>
-              <TextField floatingLabelText={"depth"}
-                         value={this.zone(["depth",1])}
-                         onChange={(e,v) => this.setZone(['depth',1],v)}
-                         errorText={checkNumber("depth",
-                                                this.zone(["depth",1]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["depth",1])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['depth',1],v)}/>          
-            </Tab>
-            <Tab label="Hills">
-              <TextField floatingLabelText={"% of map"}
-                         value={this.zone(["percent",2])}
-                         onChange={(e,v) => this.setZone(['percent',2],v)}
-                         errorText={checkNumber("percentage",
-                                                this.zone(["percent",2]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["percent",2])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['percent',2],v)}/>
-              <TextField floatingLabelText={"depth"}
-                         value={this.zone(["depth",2])}
-                         onChange={(e,v) => this.setZone(['depth',2],v)}
-                         errorText={checkNumber("depth",
-                                                this.zone(["depth",2]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["depth",2])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['depth',1],v)}/>          
-            </Tab>
+          <Table selectable={false}>
 
-            <Tab label="Moutains">
-              <TextField floatingLabelText={"% of map"}
-                         value={this.zone(["percent",3])}
-                         onChange={(e,v) => this.setZone(['percent',3],v)}
-                         errorText={checkNumber("percentage",
-                                                this.zone(["percent",3]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["percent",3])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['percent',3],v)}/>
-              <TextField floatingLabelText={"depth"}
-                         value={this.zone(["depth",3])}
-                         onChange={(e,v) => this.setZone(['depth',3],v)}
-                         errorText={checkNumber("depth",
-                                                this.zone(["depth",3]),
-                                                false,0,1)}/>
-              <Slider value={this.zone(["depth",3])}
-                      sliderStyle={{margin: "0.2em"}}
-                      onChange={(e,v) => this.setZone(['depth',3],v)}/>          
-            </Tab>
-          </Tabs>
+            <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+              <TableRow>
+                <TableHeaderColumn>Zone</TableHeaderColumn>
+                <TableHeaderColumn>% of map</TableHeaderColumn>
+                <TableHeaderColumn>depth</TableHeaderColumn>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody displayRowCheckbox={false}>
+              {(_.map(zones,(zone,index) => 
+                <TableRow key={index}>
+                  <TableRowColumn>{zone}</TableRowColumn>
+
+                  <TableRowColumn>
+                    <Slider key={"pslider"} value={this.zone(["percent",index])}
+                            sliderStyle={{margin: "0.2em"}}
+                            onChange={(e,v) =>
+                              this.setZone(['percent',index],v)}/>
+                  </TableRowColumn>
+
+                  <TableRowColumn>
+                    <Slider key={"dslider"} value={this.zone(["depth",index])}
+                            sliderStyle={{margin: "0.2em"}}
+                            onChange={(e,v) =>
+                              this.setZone(['depth',index],v)}/>
+                  </TableRowColumn>
+
+                </TableRow>))}
+            </TableBody>
+          </Table>
         </div>
       </Paper>
     )
