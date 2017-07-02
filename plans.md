@@ -22,13 +22,13 @@ TODO: fix validation so bad values are not passed to upate
        * [x] size of map
        * [x] refactor map generation: split out terrain and rendering       
        * [x] refactor data organization split terrain and zones
-       * [ ] re-map histogram (intergate with zone "ocean area, coast, etc..."
+       * [x] re-map histogram (intergate with zone "ocean area, coast, etc..."
              and select % of map and depth for each type)
-             . [-] build dialog interface (left: adjust others and limit range
+             . [x] build dialog interface (left: adjust others and limit range
                    as needed)
-             . [ ] implement rendering
+             . [x] implement rendering
        * [ ] allow different display modes (terrain, zones, etc...)
-       * [ ] improve zone icon (customize in illlustrator and create svgicon) 
+       * [ ] improve zone icon (customize in illlustrator and create svgicon)
        * [ ] add *very* simple temperature and moister cotrol
        * [ ] add a spinner during terrain generation??
 

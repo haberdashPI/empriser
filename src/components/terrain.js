@@ -66,7 +66,8 @@ class TerrainDialog extends React.Component{
                      errorText={checkNumber("height",
                                                  this.terrain("height"))}/>
 
-          <RaisedButton style={{position: "absolute", bottom: "1em", right: "1em"}}
+          <RaisedButton style={{position: "absolute",
+                                bottom: "1em", right: "1em"}}
                         primary={true}
                         onClick={() =>
                           this.props.onTerrainUpdate(this.state.terrain)}>

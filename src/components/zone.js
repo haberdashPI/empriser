@@ -87,10 +87,18 @@ class ZoneDialog extends React.Component{
                             onChange={(e,v) =>
                               this.setZone(['depth',index],v)}/>
                   </TableRowColumn>
-
                 </TableRow>))}
             </TableBody>
           </Table>
+
+          <div style={{width: "1em", height: "3em"}}/>
+          <RaisedButton style={{position: "absolute",
+                                bottom: "1em", right: "1em"}}
+                        primary={true}
+                        onClick={() =>
+                          this.props.onZoneUpdate(this.state.zones)}>
+            Render
+          </RaisedButton>
         </div>
       </Paper>
     )
@@ -101,7 +109,7 @@ export default connect(state => {
   return {zones: state.map.settings.get('zones')}
 },dispatch => {
   return {
-    onZoneUpdate: (zone) => {
+    onZoneUpdate: (zones) => {
       dispatch({type: ZONE_UPDATE, value: zones})
     }
   }

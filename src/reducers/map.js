@@ -1,6 +1,7 @@
 import {fromJS, Map} from 'immutable'
-import {TERRAIN_UPDATE} from '../actions'
+import {TERRAIN_UPDATE, ZONE_UPDATE} from '../actions'
 import {randomStr, hexX, hexY} from '../util'
+import _ from 'underscore'
 
 import sha1 from 'sha-1'
 import SimplexNoise from 'simplex-noise'
@@ -15,20 +16,27 @@ const initial_state = {
       height: 60
     },
     zones: {
-      depth: [0.1, 0.1, 0.3, 0.5],
-      percent: [0.5, 0.2, 0.1, 0.2]
+      depth: [0.3, 0.3, 0.4, 0.6],
+      percent: [0.5, 0.35, 0.1, 0.05]
     },
-    colorby: "terrain"
+    colorby: "zones"
   }),
 
   data: {},
 }
 
 function resolve_settings(state){
-  return {
+  let terrain = {
     settings: state.settings,
     data: {
       terrain: generate_terrain(state.settings.get('terrain'))
+    }
+  }
+  return {
+    ...terrain,
+    data: {
+      ...terrain.data,
+      zones: generate_zones(terrain,state.settings.get('zones'))
     }
   }
 }
@@ -36,10 +44,11 @@ function resolve_settings(state){
 export default function map(state = resolve_settings(initial_state), action){
   switch(action.type){
     case TERRAIN_UPDATE:
-      return {
-        settings: state.settings.set('terrain',action.value),
-        data: {...state.data, terrain: generate_terrain(action.value)}
-      }
+      return resolve_settings({
+        settings: state.settings.set('terrain',action.value)})
+    case ZONE_UPDATE:
+      return resolve_settings({
+        settings: state.settings.set('zones',action.value)})
     default:
       return state;
   }
@@ -92,4 +101,63 @@ function generate_terrain(settings){
   }
 
   return terrain
+}
+
+function cumsum(xs){
+  let ys = new Array(xs.length+1)
+  ys[0] = 0
+  for(let i=0;i<xs.length;i++){
+    ys[i+1] = xs[i] + ys[i]
+  }
+  return ys
+}
+
+function flattenHist(xs,N=1000){
+  // histogram
+  let bins = new Array(N)
+  let min = _.reduce(xs,(x,y) => x < y ? x : y)
+  let max = _.reduce(xs,(x,y) => x > y ? x : y)
+  for(let i=0;i<N;i++) bins[i] = 0
+  for(let i=0;i<xs.length;i++)
+    bins[Math.round((N-1)*((xs[i]-min)/(max-min)))] += 1
+
+  // flatten origianl values
+  let ys = new Array(xs.length)
+  let cumbins = cumsum(bins)
+  for(let i=0;i<xs.length;i++){
+    let rbin = (N-1)*((xs[i]-min)/(max-min))
+    let sbin = Math.floor(rbin)
+    let ebin = Math.ceil(rbin)
+    let start = cumbins[sbin+1]/cumbins[cumbins.length-1]
+    let end = cumbins[ebin+1]/cumbins[cumbins.length-1]
+
+    ys[i] = sbin === ebin ? start :
+            start + (start-end) * (rbin-ebin)/(sbin-ebin)
+            
+  }
+  return ys
+}
+
+function generate_zones(state,zones){
+  let depths = new Array(state.data.terrain.length)
+  let types = new Array(state.data.terrain.length)
+
+  let borders = cumsum(zones.get('percent').toJS())
+  let flattened = flattenHist(state.data.terrain)
+
+  let width = state.settings.getIn(['terrain','width'])
+  let height = state.settings.getIn(['terrain','height'])
+
+  for(let yi=0;yi<height;yi++){
+    for(let xi=0;xi<width;xi++){
+      let val = Math.min(1,Math.max(0.001,flattened[yi*width+xi]))
+      let typei=1
+      while(val > borders[typei] + 0.001) typei++;
+      types[yi*width+xi] = typei-1
+      depths[yi*width+xi] = ((val - borders[typei-1])/
+        (borders[typei] - borders[typei-1])) * zones.getIn(['depth',typei-1])
+    }
+  }
+
+  return {depths, types}
 }

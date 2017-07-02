@@ -4,6 +4,9 @@ import $ from 'jquery'
 
 import {hexX, hexY} from '../util'
 
+const zoneColor_H = [235,  97,   61,   0]
+const zoneColor_S = [0.67, 0.50, 0.41, 0.00]
+
 export default class MapView{
   constructor(canvas,store){
     this.store = store
@@ -33,17 +36,15 @@ export default class MapView{
     this.settings = this.store.getState().map.settings
     this.data = this.store.getState().map.data
 
-    if(!old_settings || !is(this.settings.get('terrain'),
-                            old_settings.get('terrain'))){
-      setTimeout(() => {
-        $('#spinner-view').addClass('spinner')
-        this.drawMap()
-        $('#spinner-view').removeClass('spinner')
-      }, 0);
-    }
+    setTimeout(() => {
+      $('#spinner-view').addClass('spinner')
+      this.placeTiles()
+      this.colorTiles()
+      $('#spinner-view').removeClass('spinner')
+    }, 0);
   }
 
-  drawMap(){
+  placeTiles(){
     // for now, just remove all elements from data
     this.layer.clear()
     this.layer.activate()
@@ -59,13 +60,35 @@ export default class MapView{
       for(let xi=0;xi<width;xi++){
         let x = hexX(xi-width/2,yi-height/2) * this.scale
         let y = hexY(xi-width/2,yi-height/2) * this.scale
+
         this.tiles[yi*width+xi] = 
           new Path.RegularPolygon(new Point(x,y),6,
                                   (this.scale / (2*Math.sqrt(3/4))) + 0.5)
-        
-        let level = this.data.terrain[yi*width+xi]
-        this.tiles[yi*width+xi].fillColor = new Color(level,level,level)
         this.tiles[yi*width+xi].strokeWidth = 0
+      }
+    }
+  }
+
+  colorTiles(){
+    let height = this.settings.getIn(["terrain","height"])
+    let width = this.settings.getIn(["terrain","width"])
+    for(let yi=0;yi<height;yi++){
+      for(let xi=0;xi<width;xi++){
+        
+        if(this.settings.get('colorby') == 'terrain'){
+          let level = this.data.terrain[yi*width+xi]
+          this.tiles[yi*width+xi].fillColor = new Color(level,level,level)
+        }else if(this.settings.get('colorby') == 'zones'){
+          let depth = this.data.zones.depths[yi*width+xi]
+          let zone = this.data.zones.types[yi*width+xi]
+          let breadth = this.settings.getIn(['zones','depth',zone])
+
+          let color = new Color()
+          color.brightness = (depth - breadth/2)*0.6 + 0.8          
+          color.hue = zoneColor_H[zone]
+          color.saturation = zoneColor_S[zone]
+          this.tiles[yi*width+xi].fillColor = color
+        }
       }
     }
   }
