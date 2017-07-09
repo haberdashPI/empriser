@@ -1,6 +1,6 @@
-import {fromJS, Map} from 'immutable'
+import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, ZONE_UPDATE, MOIST_TEMP_UPDATE} from '../actions'
-import {randomStr, hexX, hexY} from '../util'
+import {randomStr, hexX, hexY, hex_neighbors} from '../util'
 import _ from 'underscore'
 
 import sha1 from 'sha-1'
@@ -27,49 +27,42 @@ const initial_state = {
   data: {},
 }
 
-function resolve_settings(state){
-  let terrain = {
-    settings: state.settings,
-    data: {
-      terrain: generate_terrain(state.settings.get('terrain'))
-    }
-  }
-  return {
-    ...terrain,
-    data: {
-      ...terrain.data,
-      zones: generate_zones(terrain,state.settings.get('zones'))
-    }
-  }
+const generate_chain = List([
+  generate_terrain,
+  generate_zones,
+  generate_moisture,
+  generate_temperature
+])
+
+function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
+  if(settingsfn !== undefined)
+    state = {...state, settings: settingsfn(state.settings)}
+
+  if(chain.isEmpty()) return state
+  else return resolve_settings(chain.first()(state),undefined,chain.shift())
 }
 
 export default function map(state = resolve_settings(initial_state), action){
   switch(action.type){
     case TERRAIN_UPDATE:
-      return resolve_settings({
-        settings: state.settings.set('terrain',action.value)})
+      return resolve_settings(state,s => s.set('terrain',action.value).
+                                           set('colorby',action.colorby))
     case ZONE_UPDATE:
-      return resolve_settings({
-        settings: state.settings.set('zones',action.value)})
+      return resolve_settings(state,s => s.set('zones',action.value))
     case MOIST_TEMP_UPDATE:
-      return resolve_settings({
-        settings: state.settings.
-                        set('temp',action.value.temp).
-                        set('mosit',action.value.moist).
-                        set('colorby',action.value.colorby)
-      })
+      return resolve_settings(state,s => s.set('temp',action.value.temp).
+                                           set('mosit',action.value.moist).
+                                           set('colorby',action.value.colorby))
     default:
       return state;
   }
 }
 
-function generate_terrain(settings){
-  let height = settings.get("height")
-  let width = settings.get("width")
-  let terrain = new Array(height*width)
+function map_noise(width,height,smoothness,seed_start){
+  let result = new Array(height*width)
 
-  let H = Math.log((1-settings.get("smoothness"))*5+1) / Math.log(6)
-  let seed = parseInt(sha1(settings.get("seed")).slice(8))
+  let H = Math.log((1-smoothness)*5+1) / Math.log(6)
+  let seed = parseInt(sha1(seed_start).slice(8))
   let wrap = width
   let scale = width/2
   let depth = 10
@@ -105,11 +98,22 @@ function generate_terrain(settings){
         norm += amp
       }
 
-      terrain[yi*width+xi] = (total/norm)*0.5 + 0.5
+      result[yi*width+xi] = (total/norm)*0.5 + 0.5
     }
   }
 
-  return terrain
+  return result
+}
+
+function generate_terrain(state){
+  let height = state.settings.getIn(["terrain","height"])
+  let width = state.settings.getIn(["terrain","width"])
+  let smoothness = state.settings.getIn(["terrain","smoothness"])
+  let seed = state.settings.getIn(["terrain","seed"])
+
+  let terrain = map_noise(width,height,smoothness,seed)
+
+  return {...state, data: {...state.data, terrain: terrain}}
 }
 
 function cumsum(xs){
@@ -147,15 +151,16 @@ function flattenHist(xs,N=1000){
   return ys
 }
 
-function generate_zones(state,zones){
+function generate_zones(state){
   let depths = new Array(state.data.terrain.length)
   let types = new Array(state.data.terrain.length)
 
-  let borders = cumsum(zones.get('percent').toJS())
+  let borders = cumsum(state.settings.getIn(['zones','percent']).toJS())
   let flattened = flattenHist(state.data.terrain)
 
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
+  let type_depths = state.settings.getIn(['zones','depth']).toJS()
 
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
@@ -163,10 +168,155 @@ function generate_zones(state,zones){
       let typei=1
       while(val > borders[typei] + 0.001) typei++;
       types[yi*width+xi] = typei-1
-      depths[yi*width+xi] = ((val - borders[typei-1])/
-        (borders[typei] - borders[typei-1])) * zones.getIn(['depth',typei-1])
+      let scale = ((val - borders[typei-1])/
+        (borders[typei] - borders[typei-1]))
+      depths[yi*width+xi] = (scale-0.5) * type_depths[typei-1]
     }
   }
 
-  return {depths, types}
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      zones: {depths, types}
+    }
+  }
+}
+
+function find_water_distance(state){
+  let width = state.settings.getIn(['terrain','width'])
+  let height = state.settings.getIn(['terrain','height'])
+  let water_dists = new Array(state.data.terrain.length)
+  let num_passes = Math.max(10,Math.ceil(0.1*Math.max(height,width)))
+
+  let zones = state.data.zones
+
+  for(let yi=0;yi<height;yi++){
+    for(let xi=0;xi<width;xi++){
+      water_dists[yi*width+xi] = zones.types[yi*width+xi] == 0 ? 0 : Infinity
+    }
+  }
+
+  let type_depths = state.settings.getIn(['zones','depth']).toJS()
+
+  for(let pass=0;pass<num_passes;pass++){
+    for(let yi=0;yi<height;yi++){
+      for(let xi=0;xi<width;xi++){
+        let min_dist = water_dists[yi*width+xi]
+        let neighbors = hex_neighbors(xi,yi)
+
+        for(let n=0;n<6;n++){
+          let nxi = neighbors[n][0]
+          let nyi = neighbors[n][1]
+          if(nxi >= 0 && nxi < width && nyi >= 0 && nyi < height){
+
+            let n_level = zones.types[nyi*width+nxi] +
+                          zones.depths[nyi*width+nxi]
+            let cur_level = zones.types[yi*width+xi] +
+                            zones.depths[yi*width+xi]
+            let ydist = n_level - cur_level
+            let dist = water_dists[nyi*width+nxi] + Math.sqrt(ydist*ydist + 1)
+
+            min_dist = dist < min_dist ? dist : min_dist
+          }
+        }
+
+        water_dists[yi*width+xi] = min_dist
+      }
+    }
+  }
+
+  let max_zone = state.settings.getIn(['zones','depth']).count()
+  for(let yi=0;yi<height;yi++){
+    for(let xi=0;xi<width;xi++){
+      if(isFinite(water_dists[yi*width+xi]))
+        water_dists[yi*width+xi] = 1
+      else
+        water_dists[yi*width+xi] /= num_passes*max_zone
+    }
+  }
+
+  return water_dists
+}
+
+function generate_moisture(state){
+  let width = state.settings.getIn(['terrain','width'])
+  let height = state.settings.getIn(['terrain','height'])
+  let noises = map_noise(
+    state.settings.getIn(['terrain','width']),
+    state.settings.getIn(['terrain','height']),
+    state.settings.getIn(['moist','smoothness']),
+    state.settings.getIn(['moist','seed'])
+  )
+
+  let water_dists = find_water_distance(state)
+  let moists = new Array(state.data.terrain.length)
+  let strength = state.settings.getIn(['moist','strength'])
+
+  for(let yi=0;yi<height;yi++){
+    for(let xi=0;xi<width;xi++){
+      let noise = noises[yi*width+xi]
+      let noise_level = state.settings.getIn(['moist','noise'])
+      let water_dist = water_dists[yi*width+xi]
+      let moist = (1-noise_level)*(1-water_dist) + noise*noise_level
+      
+      moists[yi*width+xi] = (moist - 0.5)*strength + 0.5
+    }
+  }
+
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      moist: moists
+    }
+  }
+}
+
+function generate_temperature(state){
+  let width = state.settings.getIn(['terrain','width'])
+  let height = state.settings.getIn(['terrain','height'])
+  let noise_level = state.settings.getIn(['temp','noise'])
+  let noises = map_noise(
+    state.settings.getIn(['terrain','width']),
+    state.settings.getIn(['terrain','height']),
+    state.settings.getIn(['temp','smoothness']),
+    state.settings.getIn(['temp','seed'])
+  )
+
+  let zones = state.data.zones
+  let max_zone = state.settings.getIn(['zones','depth']).count()-1
+  let max_dist = (max_zone-1)*0.2*height + height/2
+  let type_depths = state.settings.getIn(['zones','depth']).toJS()
+  let strength = state.settings.getIn(['temp','strength'])
+
+  let temps = new Array(width*height)
+
+  for(let yi=0;yi<height;yi++){
+    for(let xi=0;xi<width;xi++){
+      let noise = noises[yi*width+xi]
+
+      let zone_type = zones.types[yi*width+xi]
+      let zone_step = Math.max(0,zone_type-1)
+      let zone_dist = zone_step*(0.2*height) +
+                      zones.depths[yi*width+xi]*0.1*height
+      let equator_dist = Math.abs(yi-height/2)
+
+      let moist = state.data.moist[yi*width+xi]
+
+      let warmness = 1-(zone_dist+equator_dist)/max_dist
+      let moderator = 1 - 0.5*moist*moist
+      warmness = (warmness - 0.5)*strength*moderator + 0.5
+      
+      temps[yi*width+xi] = warmness
+    }
+  }
+
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      temp: temps
+    }
+  }
 }

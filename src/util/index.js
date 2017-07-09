@@ -9,6 +9,10 @@ export function hexY(a,b){
   return b * Math.sqrt(3/4)
 }
 
+export function hex_neighbors(a,b){
+  return [[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+}
+
 export function checkNumber(name,str,isint=true,
             min=Number.NEGATIVE_INFINITY,
             max=Number.POSITIVE_INFINITY){

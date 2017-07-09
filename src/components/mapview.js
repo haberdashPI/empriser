@@ -78,13 +78,19 @@ export default class MapView{
         if(this.settings.get('colorby') == 'terrain'){
           let level = this.data.terrain[yi*width+xi]
           this.tiles[yi*width+xi].fillColor = new Color(level,level,level)
+        }else if(this.settings.get('colorby') == 'temp'){
+          let level = this.data.moist[yi*width+xi]
+          this.tiles[yi*width+xi].fillColor = new Color(level,level,level)
+        }else if(this.settings.get('colorby') == 'moist'){
+          let level = this.data.temp[yi*width+xi]
+          this.tiles[yi*width+xi].fillColor = new Color(level,level,level)
         }else if(this.settings.get('colorby') == 'zones'){
           let depth = this.data.zones.depths[yi*width+xi]
           let zone = this.data.zones.types[yi*width+xi]
           let breadth = this.settings.getIn(['zones','depth',zone])
 
           let color = new Color()
-          color.brightness = (depth - breadth/2)*0.6 + 0.8          
+          color.brightness = depth*0.6 + 0.8
           color.hue = zoneColor_H[zone]
           color.saturation = zoneColor_S[zone]
           this.tiles[yi*width+xi].fillColor = color

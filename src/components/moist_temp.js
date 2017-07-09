@@ -61,6 +61,7 @@ class MoistTempDialog extends React.Component{
     return (
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}>
+          <h3 style={{margin: 0}}>Climate</h3>
           <Table selectable={false}>
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
               <TableRow>
@@ -101,8 +102,7 @@ class MoistTempDialog extends React.Component{
                   <IconButton onClick={() => this.setMoist(["seed"],randomStr())}>
                     <RefreshIcon/>
                   </IconButton>
-                  <TextField floatingLabelText={"Seed"}
-                             value={this.moist(["seed"])}
+                  <TextField value={this.moist(["seed"])} id="moist"
                              onChange={(e,v) => this.setMoist(["seed"],v)}/>
                 </TableRowColumn>
                 <TableRowColumn>
@@ -136,8 +136,7 @@ class MoistTempDialog extends React.Component{
                   <IconButton onClick={() => this.setTemp(["seed"],randomStr())}>
                     <RefreshIcon/>
                   </IconButton>
-                  <TextField floatingLabelText={"Seed"}
-                             value={this.temp(["seed"])}
+                  <TextField value={this.temp(["seed"])} id="temp"
                              onChange={(e,v) => this.setTemp(["seed"],v)}/>
                 </TableRowColumn>
                 <TableRowColumn>

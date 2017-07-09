@@ -1,6 +1,8 @@
 import React from 'react'
 import {connect} from 'react-redux'
 
+import {Table,TableBody,TableHeader,TableHeaderColumn,
+        TableRow,TableRowColumn} from 'material-ui/Table';
 import TextField from 'material-ui/TextField'
 import Slider from 'material-ui/Slider'
 import Paper from 'material-ui/Paper'
@@ -8,6 +10,7 @@ import IconButton from 'material-ui/IconButton'
 import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/RaisedButton'
 
+import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
 import {TERRAIN_UPDATE} from '../actions'
@@ -16,11 +19,11 @@ import {randomStr,checkNumber} from '../util'
 class TerrainDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {terrain: this.props.terrain}
+    this.state = {terrain: this.props.terrain, colorby: this.props.colorby}
   }
 
   componentWillMount(){
-    this.setState({terrain: this.props.terrain})
+    this.setState({terrain: this.props.terrain, colorby: this.props.colorby})
   }
 
   setTerrain(key,value){
@@ -30,50 +33,80 @@ class TerrainDialog extends React.Component{
     return this.state.terrain.get(key)
   }
 
+  setActive(str){
+    this.setState(state => this.state.colorby !== str ?
+                         {colorby: str} : {colorby: "zones"})
+  }
+
+  iconColor(str){
+    return str === this.state.colorby ? "black" : "darkgray"
+  }
+
   render(){
+    let padding = {padding: "0.5em"}
     return (
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}> 
           <h3 style={{margin: 0}}>Terrain</h3>
-          <TextField floatingLabelText={"smoothness"}
-                     value={this.terrain("smoothness")}
-                     onChange={(e,v) => this.setTerrain('smoothness',v)}
-                     errorText={checkNumber("smoothness",
-                                                 this.terrain("smoothness"),
-                                                 false,0,1)}/>
-          <Slider value={this.terrain("smoothness")}
-                  sliderStyle={{margin: "0.2em"}}
-                  onChange={(e,v) => this.setTerrain('smoothness',v)}/>
-          <TextField floatingLabelText={"Seed"}
-                     value={this.terrain("seed")}
-                     onChange={(e,v) => this.setTerrain("seed",v)}/>
-          <IconButton onClick={() => this.setTerrain("seed",randomStr())}>
-            <RefreshIcon/>
-          </IconButton>
-          <br/>
+          <Table selectable={false}>
+            <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+              <TableRow>
+                <TableHeaderColumn style={padding}>smoothness</TableHeaderColumn>
+                <TableHeaderColumn width={"100em"}
+                                   style={{padding: "0.5em", textAlign: "right"}}>
+                  seed
+                </TableHeaderColumn>
+                <TableHeaderColumn>width</TableHeaderColumn>
+                <TableHeaderColumn>height</TableHeaderColumn>
+                <TableHeaderColumn/>
+              </TableRow>
+            </TableHeader>
+            <TableBody displayRowCheckbox={false}>
 
-          <TextField floatingLabelText={"width"}
-                     value={this.terrain("width")}
-                     style={{width: "5em"}}          
-                     onChange={(e,v) => this.setTerrain("width",v)}
-                     errorText={checkNumber("width",
-                                                 this.terrain("width"))}/>
-          <span style={{padding: "0.5em"}}>x</span>
-          <TextField floatingLabelText={"height"}
-                     value={this.terrain("height")}
-                     style={{width: "5em"}}
-                     onChange={(e,v) => this.setTerrain("height",v)}
-                     errorText={checkNumber("height",
-                                                 this.terrain("height"))}/>
+              <TableRow>
+                <TableRowColumn style={padding}>
+                  <Slider value={this.terrain("smoothness")}
+                          sliderStyle={{margin: "0.2em"}}
+                          onChange={(e,v) => this.setTerrain('smoothness',v)}/>
+                </TableRowColumn>
+                <TableRowColumn width={"100em"} style={padding}>
+                  <IconButton onClick={() => this.setTerrain("seed",randomStr())}>
+                    <RefreshIcon/>
+                  </IconButton>                  
+                  <TextField value={this.terrain("seed")} id="seed"
+                             onChange={(e,v) => this.setTerrain("seed",v)}/>
+                </TableRowColumn>
+                <TableRowColumn>
+                  <TextField value={this.terrain("width")} id="width"
+                             style={{width: "5em"}}          
+                             onChange={(e,v) => this.setTerrain("width",v)}
+                             errorText={checkNumber("width",
+                                                    this.terrain("width"))}/>
+                </TableRowColumn>
+                <TableRowColumn>
+                  <TextField value={this.terrain("height")} id="height"
+                             style={{width: "5em"}}
+                             onChange={(e,v) => this.setTerrain("height",v)}
+                             errorText={checkNumber("height",
+                                                    this.terrain("height"))}/>
+                </TableRowColumn>
+                <TableRowColumn>
+                  <IconButton onClick={() => this.setActive("terrain")}>
+                    <ViewIcon color={this.iconColor("terrain")}/>
+                  </IconButton>
+                </TableRowColumn>                
+              </TableRow>
+            </TableBody>
+          </Table>
 
+          <div style={{width: "1em", height: "3em"}}/>              
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
                         onClick={() =>
-                          this.props.onTerrainUpdate(this.state.terrain)}>
+                          this.props.onTerrainUpdate(this.state)}>
             Render
           </RaisedButton>
-          
         </div>
       </Paper>
     )
@@ -81,11 +114,18 @@ class TerrainDialog extends React.Component{
 }
 
 export default connect(state => {
-  return {terrain: state.map.settings.get('terrain')}
+  return {
+    terrain: state.map.settings.get('terrain'),
+    colorby: state.map.settings.get('colorby')
+  }
 },dispatch => {
   return {
-    onTerrainUpdate: (terrain) => {
-      dispatch({type: TERRAIN_UPDATE, value: terrain})
+    onTerrainUpdate: (state) => {
+      dispatch({
+        type: TERRAIN_UPDATE,
+        value: state.terrain,
+        colorby: state.colorby
+      })
     }
   }
 })(TerrainDialog)

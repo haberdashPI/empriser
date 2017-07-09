@@ -20,17 +20,31 @@ TODO: fix validation so bad values are not passed to upate
        * [x] randomization seed
        * [x] refactor terrain dialog
        * [x] size of map
-       * [x] refactor map generation: split out terrain and rendering       
+       * [x] refactor map generation: split out terrain and rendering
        * [x] refactor data organization split terrain and zones
        * [x] re-map histogram (intergate with zone "ocean area, coast, etc..."
              and select % of map and depth for each type)
              . [x] build dialog interface (left: adjust others and limit range
                    as needed)
              . [x] implement rendering
-       * [ ] allow different display modes (terrain, zones, etc...)
-       * [ ] improve zone icon (customize in illlustrator and create svgicon)
-       * [ ] add *very* simple temperature and moister cotrol
-       * [ ] add a spinner during terrain generation??
+       * [x] improve zone icon (customize in illlustrator and create svgicon)
+       * [ ] add *very* simple temperature and moisture cotrol
+             . [x] build dialog for temperature and moisture
+                   make terrain layout more like this layout!!!
+             NOTE: in progress, just need to debug the calculation of
+             temperature and noise
+             . [ ] determine temperature based on distance from water +
+                   equator + noise
+             . [ ] determine moisture based on noise + integrated distance from 
+             . [ ] color temperature using red through blue
+             . [ ] color moister in blue through grey
+       * [ ] have a gui grouping all the different display modes (terrain, zones, etc...)
+             togethor
+       * [ ] determine a terrain class and vegetation based on zone, temperature
+             and moisture (plus noise?)
+       * [ ] add a spinner during terrain generation?? 
+            (this will require breaking up the loops, maybe by
+             having a schedular??)
 
 3. create an interface to zoom in and explore the map
    - [ ] create zoom tool - touch interface and clickable button
@@ -38,15 +52,7 @@ TODO: fix validation so bad values are not passed to upate
    - [ ] display the exact coordinates and scale to allow easy recovery
    - [ ] display a scale marker to the bottom right (allow scale defintion)
 
-# Stage 2 (optional): improved world map generation
-
-In this stage I add more sophisticated generation of the world map, to allow for
-both more interesting terrain, and to allow more control of its generation.
-
-I do this stage now only if I'm not happy with the kind of terrain I'm getting
-with the default approach.
-
-# Stage 3: file management
+# Stage 2: file management
 
 This short stage will make the website usable. We need to
 
@@ -57,22 +63,22 @@ parameters plus the particular view we're looking at
 
 3. host the resulting website on github
 
-# Stage 4: improved graphics (maybe 2)
+# Stage 3: improved graphics (maybe 2)
 
 In this stage I work on an initial cleaning up the appearance of the map
 to make it look nicer.
 
 switch from Paper.j to PIXI
 
-# Stage 5: more improved world map generation
+# Stage 4: more improved world map generation
 
 Anything I didn't finish in stage two, I now finalize here.
 
-# Stage 6: simple location generation
+# Stage 5: simple location generation
 
 In this stage I create a method to generate locations for cities and dungeons on the map.
 
-# Stage 7: detailed location generation
+# Stage 6: detailed location generation
 
 In this stage I make it possible to zoom in to a particular city or dungeons and generate
 details of that location.
@@ -80,6 +86,6 @@ details of that location.
 This is essentially an new application within the world generation, and will
  likely involve a separate plan document.
 
-# Stage 8: improved graphics
+# Stage 7: improved graphics
 
 In this final stage I improve the graphics for location and dungeon generation.
