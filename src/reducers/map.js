@@ -1,5 +1,5 @@
 import {fromJS, Map} from 'immutable'
-import {TERRAIN_UPDATE, ZONE_UPDATE} from '../actions'
+import {TERRAIN_UPDATE, ZONE_UPDATE, MOIST_TEMP_UPDATE} from '../actions'
 import {randomStr, hexX, hexY} from '../util'
 import _ from 'underscore'
 
@@ -19,6 +19,8 @@ const initial_state = {
       depth: [0.3, 0.3, 0.4, 0.6],
       percent: [0.5, 0.35, 0.1, 0.05]
     },
+    moist: {strength: 0.3, noise: 0.2, smoothness: 0.8, seed: randomStr()},
+    temp: {strength: 0.3, noise: 0.2, smoothness: 0.8, seed: randomStr()},
     colorby: "zones"
   }),
 
@@ -49,6 +51,13 @@ export default function map(state = resolve_settings(initial_state), action){
     case ZONE_UPDATE:
       return resolve_settings({
         settings: state.settings.set('zones',action.value)})
+    case MOIST_TEMP_UPDATE:
+      return resolve_settings({
+        settings: state.settings.
+                        set('temp',action.value.temp).
+                        set('mosit',action.value.moist).
+                        set('colorby',action.value.colorby)
+      })
     default:
       return state;
   }
