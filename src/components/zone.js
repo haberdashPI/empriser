@@ -11,6 +11,8 @@ import IconButton from 'material-ui/IconButton'
 import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/RaisedButton'
 
+import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
+
 import {ZONE_UPDATE} from '../actions'
 import {checkNumber} from '../util'
 
@@ -22,9 +24,9 @@ function updatePercentsFn(index,value){
     return percents.withMutations(percents => {
       percents = percents.set(index,bValue)
       let delta = (1 - percents.reduce((x,y) => x+y))/(percents.count()-1)
-        
-        for(let i=0;i<percents.count();i++){
-          if(i != index){
+      
+      for(let i=0;i<percents.count();i++){
+        if(i != index){
           percents = percents.update(i,x => Math.min(1,Math.max(0,x + delta)))
         }
       }
@@ -36,10 +38,10 @@ function updatePercentsFn(index,value){
 class ZoneDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {zones: this.props.zones}
+    this.state = {zones: this.props.zones, colorby: this.props.colorby}
   }
   componentWillMount(){
-    this.setState({zones: this.props.zones})
+    this.setState({zones: this.props.zones, colorby: this.props.colorby})
   }
 
   setZone(keys,value){
@@ -53,6 +55,15 @@ class ZoneDialog extends React.Component{
   zone(keys){
     return this.state.zones.getIn(keys)
   }
+
+  setActive(str){
+    this.setState(state => this.state.colorby !== str ?
+                         {colorby: str} : {colorby: "zones"})
+  }
+  iconColor(str){
+    return str === this.state.colorby ? "black" : "darkgray"
+  }
+
 
   render(){
     return (
@@ -92,11 +103,16 @@ class ZoneDialog extends React.Component{
           </Table>
 
           <div style={{width: "1em", height: "3em"}}/>
+
+          <IconButton onClick={() => this.setActive("zones")}>
+            <ViewIcon color={this.iconColor("zones")}/>
+          </IconButton>
+
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
                         onClick={() =>
-                          this.props.onZoneUpdate(this.state.zones)}>
+                          this.props.onZoneUpdate(this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -106,11 +122,14 @@ class ZoneDialog extends React.Component{
 }
 
 export default connect(state => {
-  return {zones: state.map.settings.get('zones')}
+  return {
+    zones: state.map.settings.get('zones'),
+    colorby: state.map.settings.get('colorby')
+  }
 },dispatch => {
   return {
-    onZoneUpdate: (zones) => {
-      dispatch({type: ZONE_UPDATE, value: zones})
+    onZoneUpdate: (state) => {
+      dispatch({type: ZONE_UPDATE, value: state.zones, colorby: state.colorby})
     }
   }
 })(ZoneDialog)

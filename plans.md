@@ -42,9 +42,10 @@ TODO: fix validation so bad values are not passed to upate
              togethor
        * [ ] determine a terrain class and vegetation based on zone, temperature
              and moisture (plus noise?)
+       * [ ] implement terrain generation using typed arrays
        * [ ] add a spinner during terrain generation?? 
             (this will require breaking up the loops, maybe by
-             having a schedular??)
+            having a schedular??)
 
 3. create an interface to zoom in and explore the map
    - [ ] create zoom tool - touch interface and clickable button

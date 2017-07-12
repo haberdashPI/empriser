@@ -19,8 +19,8 @@ const initial_state = {
       depth: [0.3, 0.3, 0.4, 0.6],
       percent: [0.5, 0.35, 0.1, 0.05]
     },
-    moist: {strength: 0.3, noise: 0.2, smoothness: 0.8, seed: randomStr()},
-    temp: {strength: 0.3, noise: 0.2, smoothness: 0.8, seed: randomStr()},
+    moist: {strength: 0.5, noise: 0.45, smoothness: 0.6, seed: randomStr()},
+    temp: {strength: 0.95, noise: 0.45, smoothness: 0.6, seed: randomStr()},
     colorby: "zones"
   }),
 
@@ -48,10 +48,11 @@ export default function map(state = resolve_settings(initial_state), action){
       return resolve_settings(state,s => s.set('terrain',action.value).
                                            set('colorby',action.colorby))
     case ZONE_UPDATE:
-      return resolve_settings(state,s => s.set('zones',action.value))
+      return resolve_settings(state,s => s.set('zones',action.value).
+                                           set('colorby',action.colorby))
     case MOIST_TEMP_UPDATE:
       return resolve_settings(state,s => s.set('temp',action.value.temp).
-                                           set('mosit',action.value.moist).
+                                           set('moist',action.value.moist).
                                            set('colorby',action.value.colorby))
     default:
       return state;
@@ -187,6 +188,7 @@ function find_water_distance(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
   let water_dists = new Array(state.data.terrain.length)
+  // searches for distances up to 10% of map or 10 squares whichever is greater
   let num_passes = Math.max(10,Math.ceil(0.1*Math.max(height,width)))
 
   let zones = state.data.zones
@@ -198,11 +200,14 @@ function find_water_distance(state){
   }
 
   let type_depths = state.settings.getIn(['zones','depth']).toJS()
+  let old_water_dists = new Array(width*height)
+  for(let i=0;i<water_dists.length;i++)
+    old_water_dists[i] = water_dists[i]
 
   for(let pass=0;pass<num_passes;pass++){
     for(let yi=0;yi<height;yi++){
       for(let xi=0;xi<width;xi++){
-        let min_dist = water_dists[yi*width+xi]
+        let min_dist = old_water_dists[yi*width+xi]
         let neighbors = hex_neighbors(xi,yi)
 
         for(let n=0;n<6;n++){
@@ -215,7 +220,7 @@ function find_water_distance(state){
             let cur_level = zones.types[yi*width+xi] +
                             zones.depths[yi*width+xi]
             let ydist = n_level - cur_level
-            let dist = water_dists[nyi*width+nxi] + Math.sqrt(ydist*ydist + 1)
+            let dist = old_water_dists[nyi*width+nxi] + Math.sqrt(ydist*ydist + 1)
 
             min_dist = dist < min_dist ? dist : min_dist
           }
@@ -224,15 +229,19 @@ function find_water_distance(state){
         water_dists[yi*width+xi] = min_dist
       }
     }
+
+    let temp = old_water_dists
+    old_water_dists = water_dists
+    water_dists = old_water_dists
   }
 
   let max_zone = state.settings.getIn(['zones','depth']).count()
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
-      if(isFinite(water_dists[yi*width+xi]))
+      if(!isFinite(water_dists[yi*width+xi]))
         water_dists[yi*width+xi] = 1
       else
-        water_dists[yi*width+xi] /= num_passes*max_zone
+        water_dists[yi*width+xi] = Math.min(water_dists[yi*width+xi] / (2*num_passes),1)
     }
   }
 
@@ -242,6 +251,8 @@ function find_water_distance(state){
 function generate_moisture(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
+  let noise_level = state.settings.getIn(['moist','noise'])
+
   let noises = map_noise(
     state.settings.getIn(['terrain','width']),
     state.settings.getIn(['terrain','height']),
@@ -256,7 +267,6 @@ function generate_moisture(state){
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
       let noise = noises[yi*width+xi]
-      let noise_level = state.settings.getIn(['moist','noise'])
       let water_dist = water_dists[yi*width+xi]
       let moist = (1-noise_level)*(1-water_dist) + noise*noise_level
       
@@ -273,6 +283,8 @@ function generate_moisture(state){
   }
 }
 
+const height_temp_factor = 0.075
+
 function generate_temperature(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
@@ -286,7 +298,7 @@ function generate_temperature(state){
 
   let zones = state.data.zones
   let max_zone = state.settings.getIn(['zones','depth']).count()-1
-  let max_dist = (max_zone-1)*0.2*height + height/2
+  let max_dist = (max_zone-1)*height_temp_factor*height + height/2
   let type_depths = state.settings.getIn(['zones','depth']).toJS()
   let strength = state.settings.getIn(['temp','strength'])
 
@@ -298,17 +310,17 @@ function generate_temperature(state){
 
       let zone_type = zones.types[yi*width+xi]
       let zone_step = Math.max(0,zone_type-1)
-      let zone_dist = zone_step*(0.2*height) +
+      let zone_dist = zone_step*(height_temp_factor*height) +
                       zones.depths[yi*width+xi]*0.1*height
       let equator_dist = Math.abs(yi-height/2)
 
       let moist = state.data.moist[yi*width+xi]
 
       let warmness = 1-(zone_dist+equator_dist)/max_dist
-      let moderator = 1 - 0.5*moist*moist
+      let moderator = (1-moist*0.5)
       warmness = (warmness - 0.5)*strength*moderator + 0.5
       
-      temps[yi*width+xi] = warmness
+      temps[yi*width+xi] = warmness*(1-noise_level) + noise_level*noise
     }
   }
 
