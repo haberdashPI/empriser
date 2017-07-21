@@ -48,32 +48,59 @@ The steps are:
              . [x] create better icons
 
 3. create an interface to zoom in and explore the map
-   - [ ] create zoom tool - touch interface and clickable button
-   - [ ] create pan tool - touch interface and clickable button
-   - [ ] display the exact coordinates and scale to allow easy recovery
-   - [ ] display a scale marker to the bottom right (allow scale defintion)
+   - [x] create zoom tool - clickable button
+   - [x] create pan tool - draggable
 
 # Stage 2: file management
 
-This short stage will make the website usable. We need to
+This short stage will yield a usable website. We need to:
 
-1. be able to save map settings as a file: settings should include the generation
+- [x] be able to save map settings as a file: settings should include the generation
 parameters plus the particular view we're looking at
 
-2. be able to save a view as an image (using .toDataURL())
+- [ ] be able to load a saved map
 
-3. host the resulting website on github
+- [ ] be able to save a view as an image (e.g. using .toDataURL())
 
-# Stage 3: improved graphics (maybe 2)
+- [ ] host the resulting website on github
+
+# Stage 2.1: code refactoring
+
+There is some cruft in the code. Confusing names for anyone trying to read the
+source that aren't the same as those in the user interface. Also a few
+organizational issues (we can probably breakup map.js into severla files)
+
+# Stage 3: improved graphics
 
 In this stage I work on an initial cleaning up the appearance of the map
-to make it look nicer.
+to make it look nice and presentable. 
 
-switch from Paper.j to PIXI
+* switch from Paper.j to PIXI - same output, just faster
+* improve zoom interface: I didn't make this better earlier because
+  paper.js is slow
+* add noisy border to tiles
+* add noisy interior
+* add legends to make the map easier to read
+* add annotations for:
+    - moutains
+    - hills
+    - vegetation
+* improve color interpolation (use color brewer) for various views
+* add a spinner during terrain generation?? 
+  (this will require breaking up the loops, maybe by
+  having a schedular??)
 
-# Stage 4: more improved world map generation
+* display the exact coordinates and scale to allow easy recovery
+* allow exact coordinates and scale to be set
+
+# Stage 4: improved world map generation
 
 Anything I didn't finish in stage two, I now finalize here.
+
+* scale parameter: allow the scale of continents to be selected
+* optimization: implement terrain generation using typed arrays
+* wind generation to create adjusted moisture and temperature values
+* create rivers
 
 # Stage 5: simple location generation
 
@@ -84,9 +111,7 @@ In this stage I create a method to generate locations for cities and dungeons on
 In this stage I make it possible to zoom in to a particular city or dungeons and generate
 details of that location.
 
-This is essentially an new application within the world generation, and will
- likely involve a separate plan document.
+This is essentially a new application within the world generation, and will
+likely involve a separate plan document. I could link to this
+app, which could take some inputs from the world map.
 
-# Stage 7: improved graphics
-
-In this final stage I improve the graphics for location and dungeon generation.

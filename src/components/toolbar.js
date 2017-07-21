@@ -1,5 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
+import $ from 'jquery'
 import {Toolbar, ToolbarGroup, ToolbarSeparator,
         ToolbarTitle} from 'material-ui/Toolbar'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
@@ -10,6 +11,8 @@ import FlatButton from 'material-ui/FlatButton'
 import IconMenu from 'material-ui/IconMenu'
 import MenuItem from 'material-ui/MenuItem'
 import Paper from 'material-ui/Paper'
+import Dialog from 'material-ui/Dialog'
+import Download from '@axetroy/react-download'
 
 import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
 import ZoomInIcon from 'material-ui/svg-icons/action/zoom-in'
@@ -21,7 +24,7 @@ import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import VegetIcon from 'material-ui/svg-icons/image/nature'
 
 import {ClimateIcon, ZoneIcon, ClimateZoneIcon} from './icons'
-import {ZOOM,READY_MOVE} from '../actions'
+import {ZOOM,READY_MOVE,LOAD_MAP} from '../actions'
 
 import TerrainDialog from './terrain'
 import ZoneDialog from './zone'
@@ -37,6 +40,7 @@ class MapToolbar extends React.Component{
     super(props)
     this.state = {active: "", subactive: ""}
   }
+
   setActive(active,subactive=""){
     if(active === "move" && this.state.active !== "move")
       if(active == "move") this.props.onMoveable(true)
@@ -111,6 +115,9 @@ class MapToolbar extends React.Component{
   }
 
   render(){
+    let dobj = this.props.map_settings.toJS()
+    let ddata = JSON.stringify(dobj);
+    
     return (
       <MuiThemeProvider>
         <Paper zDepth={2}>
@@ -135,7 +142,9 @@ class MapToolbar extends React.Component{
                 iconButtonElement={<IconButton><MoreVertIcon/></IconButton>}
                 anchorOrigin={{horizontal: 'left', vertical: 'top'}}
                 targetOrigin={{horizontal: 'left', vertical: 'top'}}>
-                <MenuItem primaryText="Save…"/>
+                <Download file="map.json" content={ddata}>
+                  <MenuItem primaryText="Save…"/>
+                </Download>
                 <MenuItem primaryText="Save Image…"/>
                 <MenuItem primaryText="Load…"/>
                 <MenuItem primaryText="Settings…"/>
@@ -164,7 +173,9 @@ class MapToolbar extends React.Component{
   }
 }
 
-export default connect(state => {return {}},dispatch => {
+export default connect(state => {
+  return {map_settings: state.map.settings}
+},dispatch => {
   return {
     onZoomIn: () => {
       dispatch({type: ZOOM, value: Math.sqrt(2)})
@@ -174,6 +185,9 @@ export default connect(state => {return {}},dispatch => {
     },
     onMoveable: (value) => {
       dispatch({type: READY_MOVE, value: value})
+    },
+    onLoad: (map_settings) => {
+      dispatch({type: LOAD_MAP, value: map_settings})
     }
   }
 })(MapToolbar)

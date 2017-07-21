@@ -30,6 +30,7 @@ const tileColor_L = [ 0.9, 0.8, 0.95, 0.75, 0.65,  0.55, 0.95 ]
 const vegetColor_H = [ 116,  116,  133,  80,   58   ]
 const vegetColor_S = [ 1,    1,    0.61, 1,    1    ]
 const vegetColor_L = [ 0.25, 0.53, 0.19, 0.53, 0.15 ]
+const LEFT = 1
 
 export default class MapView{
   constructor(canvas,store){
@@ -55,8 +56,12 @@ export default class MapView{
     store.subscribe(() => this.update())
 
     this.lastDrag = undefined
-    this.canvas.addEventListener("drag", event => {
-      if(!this.settings || !this.settings.getIn(['view','draggable'])) return
+    this.canvas.addEventListener("mousemove", event => {
+      if(!this.settings || !this.settings.getIn(['view','draggable']) ||
+         !(event.buttons & LEFT)){
+        this.lastDrag = undefined
+        return
+      }
 
       this.canvas.style.cursor = "-webkit-grabbing"
       this.canvas.style.cursor = "-moz-grabbing"
@@ -72,14 +77,7 @@ export default class MapView{
         store.dispatch({type: MOVE, x: diffX, y: diffY})
       }
     }, false);
-
-    this.canvas.addEventListener("drop",
-                                 event => this.lastDrag = undefined, false);
-    this.canvas.addEventListener("dragleave",
-                                 event => this.lastDrag = undefined, false);
   }
-
-  
 
   update(){
     if(is(this.settings,this.store.getState().map.settings)) return;

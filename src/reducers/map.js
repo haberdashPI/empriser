@@ -1,7 +1,7 @@
 import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, ZONE_UPDATE, MOIST_TEMP_UPDATE,
         COLORBY_UPDATE, TILE_UPDATE, ZOOM, READY_MOVE,
-        MOVE} from '../actions'
+        MOVE, LOAD_MAP} from '../actions'
 import {randomStr, hexX, hexY, hex_neighbors} from '../util'
 import _ from 'underscore'
 
@@ -91,7 +91,8 @@ export default function map(state = resolve_settings(initial_state), action){
     case ZOOM:
       return {
         ...state,
-        settings: state.settings.updateIn(['view','scale'],s => s * action.value)
+        settings: state.settings.updateIn(['view','scale'],
+                                          s => s * action.value)
       }
     case READY_MOVE:
       return {
@@ -106,6 +107,8 @@ export default function map(state = resolve_settings(initial_state), action){
                         updateIn(['view','x'],x => x + action.x / scale).
                         updateIn(['view','y'],y => y + action.y / scale)
       }
+    case LOAD_MAP:
+      return resolve_settings({state: action.value})
     default:
       return state;
   }
@@ -241,7 +244,7 @@ function find_water_distance(state){
   let height = state.settings.getIn(['terrain','height'])
   let water_dists = new Array(state.data.terrain.length)
   // searches for distances up to 10% of map or 10 squares whichever is greater
-  let num_passes = Math.max(10,Math.ceil(0.1*Math.max(height,width)))
+  let num_passes = 6 //Math.max(10,Math.ceil(0.1*Math.max(height,width)))
 
   let zones = state.data.zones
 
