@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {randomStr} from '../util'
+import {randomStr, DEFAULT_COLORBY} from '../util'
 
 import {Table,TableBody,TableHeader,TableHeaderColumn,
         TableRow,TableRowColumn} from 'material-ui/Table';
@@ -49,7 +49,7 @@ class MoistTempDialog extends React.Component{
 
   setActive(str){
     this.setState(state => this.state.colorby !== str ?
-                         {colorby: str} : {colorby: "zones"})
+                         {colorby: str} : {colorby: DEFAULT_COLORBY})
   }
 
   iconColor(str){

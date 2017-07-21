@@ -2,6 +2,7 @@ import {Map, is} from 'immutable'
 import paper, {Point, Rectangle, Path, Color, Layer} from 'paper'
 import $ from 'jquery'
 
+import {MOVE} from '../actions'
 
 import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
         COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
@@ -34,6 +35,7 @@ export default class MapView{
   constructor(canvas,store){
     this.store = store
     this.map = Map({})
+    this.canvas = canvas
     
     $(document).ready(() => {
       canvas.width = $(window).width()
@@ -51,7 +53,33 @@ export default class MapView{
     })
 
     store.subscribe(() => this.update())
+
+    this.lastDrag = undefined
+    this.canvas.addEventListener("drag", event => {
+      if(!this.settings || !this.settings.getIn(['view','draggable'])) return
+
+      this.canvas.style.cursor = "-webkit-grabbing"
+      this.canvas.style.cursor = "-moz-grabbing"
+      this.canvas.style.cursor = "grabbing"
+
+      if(this.lastDrag === undefined)
+        this.lastDrag = [event.screenX,event.screenY]
+      else{
+        let diffX = event.screenX - this.lastDrag[0]
+        let diffY = event.screenY - this.lastDrag[1]
+        this.lastDrag = [event.screenX,event.screenY]
+
+        store.dispatch({type: MOVE, x: diffX, y: diffY})
+      }
+    }, false);
+
+    this.canvas.addEventListener("drop",
+                                 event => this.lastDrag = undefined, false);
+    this.canvas.addEventListener("dragleave",
+                                 event => this.lastDrag = undefined, false);
   }
+
+  
 
   update(){
     if(is(this.settings,this.store.getState().map.settings)) return;
@@ -59,12 +87,16 @@ export default class MapView{
     this.settings = this.store.getState().map.settings
     this.data = this.store.getState().map.data
 
-    setTimeout(() => {
-      $('#spinner-view').addClass('spinner')
-      this.placeTiles()
-      this.colorTiles()
-      $('#spinner-view').removeClass('spinner')
-    }, 0);
+    if(this.settings.getIn(['view','draggable'])){
+      this.canvas.style.cursor = "-webkit-grab"
+      this.canvas.style.cursor = "-moz-grab"
+      this.canvas.style.cursor = "grab"
+    }else{
+      this.canvas.style.cursor = "default"
+    }
+
+    this.placeTiles()
+    this.colorTiles()
   }
 
   placeTiles(){
@@ -77,16 +109,18 @@ export default class MapView{
 
     this.tiles = Array(width*height)    
     
-    this.scale = 10
+    let scale = this.settings.getIn(["view","scale"])
+    let centerX = this.settings.getIn(["view","x"])
+    let centerY = this.settings.getIn(["view","y"])
 
     for(let yi=0;yi<height;yi++){
       for(let xi=0;xi<width;xi++){
-        let x = hexX(xi-width/2,yi-height/2) * this.scale
-        let y = hexY(xi-width/2,yi-height/2) * this.scale
+        let x = (centerX + hexX(xi-width/2,yi-height/2)) * scale
+        let y = (centerY + hexY(xi-width/2,yi-height/2)) * scale
 
         this.tiles[yi*width+xi] = 
           new Path.RegularPolygon(new Point(x,y),6,
-                                  (this.scale / (2*Math.sqrt(3/4))) + 0.5)
+                                  (scale / (2*Math.sqrt(3/4))) + 0.5)
         this.tiles[yi*width+xi].strokeWidth = 0
       }
     }

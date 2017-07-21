@@ -1,6 +1,7 @@
 import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, ZONE_UPDATE, MOIST_TEMP_UPDATE,
-        COLORBY_UPDATE, TILE_UPDATE} from '../actions'
+        COLORBY_UPDATE, TILE_UPDATE, ZOOM, READY_MOVE,
+        MOVE} from '../actions'
 import {randomStr, hexX, hexY, hex_neighbors} from '../util'
 import _ from 'underscore'
 
@@ -87,6 +88,24 @@ export default function map(state = resolve_settings(initial_state), action){
                                            set('colorby',action.colorby))
     case COLORBY_UPDATE:
       return resolve_settings(state,s => s.set('colorby',action.value))
+    case ZOOM:
+      return {
+        ...state,
+        settings: state.settings.updateIn(['view','scale'],s => s * action.value)
+      }
+    case READY_MOVE:
+      return {
+        ...state,
+        settings: state.settings.setIn(['view','draggable'],action.value)
+      }
+    case MOVE:
+      let scale = state.settings.getIn(['view','scale'])
+      return {
+        ...state,
+        settings: state.settings.
+                        updateIn(['view','x'],x => x + action.x / scale).
+                        updateIn(['view','y'],y => y + action.y / scale)
+      }
     default:
       return state;
   }
@@ -237,29 +256,46 @@ function find_water_distance(state){
   for(let i=0;i<water_dists.length;i++)
     old_water_dists[i] = water_dists[i]
 
+  let max_dist = 0
   for(let pass=0;pass<num_passes;pass++){
     for(let yi=0;yi<height;yi++){
       for(let xi=0;xi<width;xi++){
-        let min_dist = old_water_dists[yi*width+xi]
+        let dists = Array(6)
+        let ndist = 0
         let neighbors = hex_neighbors(xi,yi)
 
         for(let n=0;n<6;n++){
           let nxi = neighbors[n][0]
           let nyi = neighbors[n][1]
-          if(nxi >= 0 && nxi < width && nyi >= 0 && nyi < height){
-
+          if(nxi >= 0 && nxi < width && nyi >= 0 && nyi < height &&
+             isFinite(old_water_dists[nyi*width+nxi])){
             let n_level = zones.types[nyi*width+nxi] +
                           zones.depths[nyi*width+nxi]
             let cur_level = zones.types[yi*width+xi] +
                             zones.depths[yi*width+xi]
             let ydist = n_level - cur_level
-            let dist = old_water_dists[nyi*width+nxi] + Math.sqrt(ydist*ydist + 1)
-
-            min_dist = dist < min_dist ? dist : min_dist
+            dists[ndist++] = old_water_dists[nyi*width+nxi] +
+                             Math.sqrt(ydist*ydist + 1)
           }
         }
 
-        water_dists[yi*width+xi] = min_dist
+        if(ndist > 0){
+          let ws = Array(ndist)
+          let wsum = 0
+          for(let n=0;n<ndist;n++)
+            wsum += ws[n] = Math.exp(-dists[n]/2)
+          let softmin = 0
+          for(let n=0;n<ndist;n++) softmin += ws[n]*dists[n]
+          water_dists[yi*width+xi] = Math.min(old_water_dists[yi*width+xi],
+                                              softmin / wsum)
+        }else{
+          water_dists[yi*width+xi] = old_water_dists[yi*width+xi]
+        }
+        
+
+        if(isFinite(water_dists[yi*width+xi]) &&
+           water_dists[yi*width+xi] > max_dist)
+          max_dist = water_dists[yi*width+xi]
       }
     }
 
@@ -274,7 +310,7 @@ function find_water_distance(state){
       if(!isFinite(water_dists[yi*width+xi]))
         water_dists[yi*width+xi] = 1
       else
-        water_dists[yi*width+xi] = Math.min(water_dists[yi*width+xi] / (2*num_passes),1)
+        water_dists[yi*width+xi] = water_dists[yi*width+xi] / max_dist
     }
   }
 
@@ -365,35 +401,6 @@ function generate_temperature(state){
     }
   }
 }
-
-// vegetation:
-
-// use noise to decide when to place vegetation and when to leave as some
-// default (e.g. default to grassland, but add trees when noise above threshold)
-
-// baseline vegetation
-// sum of wet + dry + extreme = 1
-
-// dry & hot
-// Arid, Semiarid (warmer to colder)
-
-// wet & hot
-// Tropical
-
-// moderate:
-// Warm temperate, Cold temperate (warm to cold)
-
-// cold:
-// (Alpine | Subarctic), Arctic
-
-// overlay vegetation:
-// forrest (warm temperate)
-// evergreen (cold temperate)
-// jungle (tropical)
-// bush (semiarid, warm temperate)
-// wetland (tropcial, warm temperate, cold temperate)
-
-// grasses (default in anything but arid, alpine, and arctic)
 
 Set.prototype.difference = function(setB) {
   var difference = new Set(this);

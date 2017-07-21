@@ -14,7 +14,7 @@ import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
 import {TERRAIN_UPDATE} from '../actions'
-import {randomStr,checkNumber} from '../util'
+import {randomStr,checkNumber,DEFAULT_COLORBY} from '../util'
 
 class TerrainDialog extends React.Component{
   constructor(props){
@@ -35,7 +35,7 @@ class TerrainDialog extends React.Component{
 
   setActive(str){
     this.setState(state => this.state.colorby !== str ?
-                         {colorby: str} : {colorby: "zones"})
+                         {colorby: str} : {colorby: DEFAULT_COLORBY})
   }
 
   iconColor(str){

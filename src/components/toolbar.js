@@ -12,7 +12,8 @@ import MenuItem from 'material-ui/MenuItem'
 import Paper from 'material-ui/Paper'
 
 import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
-import ZoomIcon from 'material-ui/svg-icons/action/search'
+import ZoomInIcon from 'material-ui/svg-icons/action/zoom-in'
+import ZoomOutIcon from 'material-ui/svg-icons/action/zoom-out'
 import EditIcon from 'material-ui/svg-icons/editor/mode-edit'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
 import TerrainIcon from 'material-ui/svg-icons/image/landscape'
@@ -20,6 +21,7 @@ import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import VegetIcon from 'material-ui/svg-icons/image/nature'
 
 import {ClimateIcon, ZoneIcon, ClimateZoneIcon} from './icons'
+import {ZOOM,READY_MOVE} from '../actions'
 
 import TerrainDialog from './terrain'
 import ZoneDialog from './zone'
@@ -30,12 +32,17 @@ import VegetationDialog from './vegetation'
 
 injectTapEventPlugin();
 
-export default class MapToolbar extends React.Component{
+class MapToolbar extends React.Component{
   constructor(props){
     super(props)
     this.state = {active: "", subactive: ""}
   }
   setActive(active,subactive=""){
+    if(active === "move" && this.state.active !== "move")
+      if(active == "move") this.props.onMoveable(true)
+    else
+      if(active == "move") this.props.onMoveable(false)
+
     this.setState(state => {
       if(state.active == active){
         if(subactive == "")
@@ -90,6 +97,14 @@ export default class MapToolbar extends React.Component{
     )
   }
 
+  renderMove(){
+    return (
+      <ToolbarGroup>
+        <IconButton onClick={() => this.props.onZoomIn()}>
+          <ZoomInIcon/>
+        </IconButton>
+        <IconButton onClick={() => this.props.onZoomOut()}>
+          <ZoomOutIcon/>
         </IconButton>
       </ToolbarGroup>
     )
@@ -101,8 +116,8 @@ export default class MapToolbar extends React.Component{
         <Paper zDepth={2}>
           <Toolbar>
             <ToolbarGroup firstChild={true}>
-              <IconButton onClick={() => this.setActive("pan")}>
-                <PanToolIcon color={this.iconColor("pan")}/>
+              <IconButton onClick={() => this.setActive("move")}>
+                <PanToolIcon color={this.iconColor("move")}/>
               </IconButton>
               <IconButton onClick={() => this.setActive("view")}>
                 <ViewIcon color={this.iconColor("view")}/>
@@ -113,7 +128,8 @@ export default class MapToolbar extends React.Component{
             </ToolbarGroup>
             
             {(this.state.active === "edit" ? this.renderEdit() : null)}
-
+            {(this.state.active === "move" ? this.renderMove() : null)}
+            
             <ToolbarGroup lastChild={true}>
               <IconMenu
                 iconButtonElement={<IconButton><MoreVertIcon/></IconButton>}
@@ -148,3 +164,16 @@ export default class MapToolbar extends React.Component{
   }
 }
 
+export default connect(state => {return {}},dispatch => {
+  return {
+    onZoomIn: () => {
+      dispatch({type: ZOOM, value: Math.sqrt(2)})
+    },
+    onZoomOut: () => {
+      dispatch({type: ZOOM, value: 1/Math.sqrt(2)})
+    },
+    onMoveable: (value) => {
+      dispatch({type: READY_MOVE, value: value})
+    }
+  }
+})(MapToolbar)
