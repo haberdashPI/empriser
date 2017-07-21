@@ -2,6 +2,11 @@ import {Map, is} from 'immutable'
 import paper, {Point, Rectangle, Path, Color, Layer} from 'paper'
 import $ from 'jquery'
 
+
+import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
+        COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
+        FORREST,  JUNGLE,  EVERGREEN,  BUSH,  WETLAND} from '../reducers/map'
+
 import {hexX, hexY} from '../util'
 
 const zoneColor_H = [235,  97,   61,   0]
@@ -16,6 +21,14 @@ const least_temp = new Color(14/255,0,143/255)
 function interpColor(a,b,x){
  return a.add(b.subtract(a).multiply(x))
 }
+
+const tileColor_H = [ 60,  37,  93,  112,  92,   73,   0   ]
+const tileColor_S = [ 1,   0.6, 0.7, 0.5,  0.32, 0.15, 0   ]
+const tileColor_L = [ 0.9, 0.8, 0.95, 0.75, 0.65,  0.55, 0.95 ]
+
+const vegetColor_H = [ 116,  116,  133,  80,   58   ]
+const vegetColor_S = [ 1,    1,    0.61, 1,    1    ]
+const vegetColor_L = [ 0.25, 0.53, 0.19, 0.53, 0.15 ]
 
 export default class MapView{
   constructor(canvas,store){
@@ -106,6 +119,29 @@ export default class MapView{
           color.brightness = depth*0.6 + 0.8
           color.hue = zoneColor_H[zone]
           color.saturation = zoneColor_S[zone]
+        }else if(this.settings.get('colorby') == 'tiles'){
+          if(this.data.zones.types[yi*width+xi] == 0){
+            let depth = this.data.zones.depths[yi*width+xi]
+            let breadth = this.settings.getIn(['zones','depth',0])
+
+            color.brightness = depth*0.6 + 0.8
+            color.hue = zoneColor_H[0]
+            color.saturation = zoneColor_S[0]
+          }else if(this.data.tiles.vegetation[yi*width+xi] == GRASSES){
+            let c = this.data.tiles.climate[yi*width+xi]
+            let z = this.data.zones.types[yi*width+xi]
+
+            color.brightness = tileColor_L[c]*(1-Math.max(0,z-1) * 0.25)
+            color.hue = tileColor_H[c]
+            color.saturation = tileColor_S[c]
+          }else{
+            let v = this.data.tiles.vegetation[yi*width+xi]
+            let z = this.data.zones.types[yi*width+xi]
+
+            color.brightness = tileColor_L[v]*(1-Math.max(0,z-1) * 0.25)
+            color.hue = vegetColor_H[v]
+            color.saturation = vegetColor_S[v]
+          }
         }
 
         this.tiles[yi*width+xi].fillColor = color        

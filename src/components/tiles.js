@@ -13,10 +13,12 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 
-import {ZONE_UPDATE} from '../actions'
-import {checkNumber, DEFAULT_COLORBY} from '../util'
+import {TILES_UPDATE} from '../actions'
+import {checkNumber} from '../util'
 
-const zones = ["Ocean","Land","Hills","Mountains"]
+const tiles = ["Arid","Semiarid","Tropical","Temperate (Warm)",
+               "Temperate (Cold)","Subarctic","Arctic"]
+const vegetation = ["Forrest","Evergreen","Jungle","Bush","Wetland"]
 
 function updatePercentsFn(index,value){
   let bValue = Math.min(1,Math.max(0,value))
@@ -35,35 +37,35 @@ function updatePercentsFn(index,value){
   }
 }
 
-class ZoneDialog extends React.Component{
+class TilesDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {zones: this.props.zones, colorby: this.props.colorby}
+    this.state = {tiles: this.props.tiles, colorby: this.props.colorby}
   }
   componentWillMount(){
-    this.setState({zones: this.props.zones, colorby: this.props.colorby})
+    this.setState({tiles: this.props.tiles, colorby: this.props.colorby})
   }
 
-  setZone(keys,value){
+  setTile(keys,value){
     if(keys[0] == 'percent')
       this.setState({
-        zones: this.state.zones.update('percent',
+        tiles: this.state.tiles.update('percent',
                                        updatePercentsFn(keys[1],value)),
-        colorby: "zones"
+        colorby: "tiles"
       })
     else
       this.setState({
-        zones: this.state.zones.setIn(keys,value),
-        colorby: "zones"
+        tiles: this.state.tiles.setIn(keys,value),
+        colorby: "tiles"
       })
   }
-  zone(keys){
-    return this.state.zones.getIn(keys)
+  tile(keys){
+    return this.state.tiles.getIn(keys)
   }
 
   setActive(str){
     this.setState(state => this.state.colorby !== str ?
-                         {colorby: str} : {colorby: DEFAULT_COLORBY})
+                         {colorby: str} : {colorby: "tiles"})
   }
   iconColor(str){
     return str === this.state.colorby ? "black" : "darkgray"
@@ -74,37 +76,29 @@ class ZoneDialog extends React.Component{
     return (
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}>
-          <h3 style={{margin: 0, marginBottom: "1em"}}>Terrain Zones</h3>
-          <FlatButton onClick={() => this.setActive("zones")}
+          <h3 style={{margin: 0, marginBottom: "1em"}}>Climates</h3>
+          <FlatButton onClick={() => this.setActive("tiles")}
                       label="Display" icon={<ViewIcon/>}
-                      style={{color: this.iconColor("zones")}}/>
+                      style={{color: this.iconColor("tiles")}}/>
           <Table selectable={false}>
 
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
               <TableRow>
-                <TableHeaderColumn>Zone</TableHeaderColumn>
+                <TableHeaderColumn>Climate</TableHeaderColumn>
                 <TableHeaderColumn>% of map</TableHeaderColumn>
-                <TableHeaderColumn>depth</TableHeaderColumn>
               </TableRow>
             </TableHeader>
 
             <TableBody displayRowCheckbox={false}>
-              {(_.map(zones,(zone,index) => 
+              {(_.map(tiles,(climate,index) => 
                 <TableRow key={index}>
-                  <TableRowColumn>{zone}</TableRowColumn>
+                  <TableRowColumn>{climate}</TableRowColumn>
 
                   <TableRowColumn>
-                    <Slider key={"pslider"} value={this.zone(["percent",index])}
+                    <Slider key={"pslider"} value={this.tile(["percent",index])}
                             sliderStyle={{margin: "0.2em"}}
                             onChange={(e,v) =>
-                              this.setZone(['percent',index],v)}/>
-                  </TableRowColumn>
-
-                  <TableRowColumn>
-                    <Slider key={"dslider"} value={this.zone(["depth",index])}
-                            sliderStyle={{margin: "0.2em"}}
-                            onChange={(e,v) =>
-                              this.setZone(['depth',index],v)}/>
+                              this.setTile(['percent',index],v)}/>
                   </TableRowColumn>
                 </TableRow>))}
             </TableBody>
@@ -116,7 +110,7 @@ class ZoneDialog extends React.Component{
                                 bottom: "1em", right: "1em"}}
                         primary={true}
                         onClick={() =>
-                          this.props.onZoneUpdate(this.state)}>
+                          this.props.onTileUpdate(this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -127,13 +121,13 @@ class ZoneDialog extends React.Component{
 
 export default connect(state => {
   return {
-    zones: state.map.settings.get('zones'),
+    tiles: state.map.settings.get('tiles'),
     colorby: state.map.settings.get('colorby')
   }
 },dispatch => {
   return {
-    onZoneUpdate: (state) => {
-      dispatch({type: ZONE_UPDATE, value: state.zones, colorby: state.colorby})
+    onTileUpdate: (state) => {
+      dispatch({type: TILE_UPDATE, value: state.tile, colorby: state.colorby})
     }
   }
-})(ZoneDialog)
+})(TilesDialog)

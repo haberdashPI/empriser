@@ -2,18 +2,17 @@
 
 # Stage 1: simple map generation and exploration
 
-In this stage I create a working world map generator. It isn't fancy: I just generate random heights (via multiple frequencies of noise) and color them accordigly. The user can zoom in and out and pan around the map and save the current view as an image.
+In this stage I create a working world map generator. It isn't super fancy: just
+enough to get all of the map features I want to design a map on top of
 
-The steps are
-
-TODO: fix validation so bad values are not passed to upate
+The steps are:
 
 1. Generate a static view with randomized elevations as points
    - [x] use a fixed set of heights and render each as an appropriate color
    - [x] convert to hexes
    - [x] generate random heights using gradient interpolation across multiple scales
 2. Create an interface to manipulate the paramters of map generation
-   - [ ] setup a single slider setting using react and material-ui - terrain smoothness
+   - [x] setup a single slider setting using react and material-ui - terrain smoothness
        * [x] create the initial interface
        * [x] implement redux state mangement and render a new map
    - [x] setup other controls
@@ -28,24 +27,25 @@ TODO: fix validation so bad values are not passed to upate
                    as needed)
              . [x] implement rendering
        * [x] improve zone icon (customize in illlustrator and create svgicon)
-       * [ ] add *very* simple temperature and moisture cotrol
+       * [x] add *very* simple temperature and moisture cotrol
              . [x] build dialog for temperature and moisture
                    make terrain layout more like this layout!!!
-             NOTE: in progress, just need to debug the calculation of
-             temperature and noise
-             . [ ] determine temperature based on distance from water +
+             . [x] determine temperature based on distance from water +
                    equator + noise
-             . [ ] determine moisture based on noise + integrated distance from 
-             . [ ] color temperature using red through blue
-             . [ ] color moister in blue through grey
-       * [ ] have a gui grouping all the different display modes (terrain, zones, etc...)
+             . [x] determine moisture based on noise + integrated distance from 
+             . [x] color temperature using red through blue
+             . [x] color moister in blue through grey
+       * [x] have a gui grouping all the different display modes (terrain, zones, etc...)
              togethor
-       * [ ] determine a terrain class and vegetation based on zone, temperature
+       * [x] determine vegetation based on temperature
              and moisture (plus noise?)
-       * [ ] implement terrain generation using typed arrays
-       * [ ] add a spinner during terrain generation?? 
-            (this will require breaking up the loops, maybe by
-            having a schedular??)
+       * [x] visualize final map with vegetation + indication of height (shading probably)
+             . [x] determine setting constraints
+             . [x] generate gui
+             . [x] implement gui constraints
+             . [x] implement tile rendering
+             . [x] debug tile generation
+             . [x] create better icons
 
 3. create an interface to zoom in and explore the map
    - [ ] create zoom tool - touch interface and clickable button

@@ -1,3 +1,8 @@
 export const TERRAIN_UPDATE = "TERRAIN_UPDATE"
 export const ZONE_UPDATE = "ZONE_UPDATE"
 export const MOIST_TEMP_UPDATE = "MOIST_TEMP_UPDATE"
+export const COLORBY_UPDATE = "COLORBY_UPDATE"
+export const TILE_UPDATE = "TILE_UPDATE"
+export const ZOOM = "ZOOM"
+export const READY_MOVE = "READY_MOVE"
+export const MOVE = "MOVE"

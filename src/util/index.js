@@ -27,3 +27,5 @@ export function checkNumber(name,str,isint=true,
   else
     return name+" must be a number"
 }
+
+export const DEFAULT_COLORBY = "tiles"
