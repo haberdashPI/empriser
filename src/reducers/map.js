@@ -1,6 +1,6 @@
 import {fromJS, Map, List} from 'immutable'
-import {TERRAIN_UPDATE, ZONE_UPDATE, MOIST_TEMP_UPDATE,
-        COLORBY_UPDATE, TILE_UPDATE, ZOOM, READY_MOVE,
+import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
+        COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
         MOVE, LOAD_MAP} from '../actions'
 import {randomStr, hexX, hexY, hex_neighbors} from '../util'
 import _ from 'underscore'
@@ -32,13 +32,13 @@ const initial_state = {
       width: 100,
       height: 60
     },
-    zones: {
+    terrain_zones: {
       depth: [0.3, 0.3, 0.4, 0.6],
       percent: [0.5, 0.35, 0.1, 0.05]
     },
     moist: {strength: 0.5, noise: 0.45, smoothness: 0.6, seed: randomStr()},
     temp: {strength: 0.95, noise: 0.45, smoothness: 0.6, seed: randomStr()},
-    tiles: {
+    climate_zones: {
       percent: [0.05,0.05,0.2,0.3,0.3,0.05,0.05],
       vegetation: {
         forrest: {density: 0.6, smoothness: 0.3, seed: randomStr()},
@@ -48,7 +48,7 @@ const initial_state = {
         wetland: {density: 0.1, smoothness: 0.4, seed: randomStr()}
       }
     },
-    colorby: "tiles",
+    colorby: "climate_zones",
     view: {scale: 10, x: 0, y: 0, draggable: false}
   }),
 
@@ -57,10 +57,10 @@ const initial_state = {
 
 const generate_chain = List([
   generate_terrain,
-  generate_zones,
+  generate_terrain_zones,
   generate_moisture,
   generate_temperature,
-  generate_tiles
+  generate_climate
 ])
 
 function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
@@ -76,15 +76,15 @@ export default function map(state = resolve_settings(initial_state), action){
     case TERRAIN_UPDATE:
       return resolve_settings(state,s => s.set('terrain',action.value).
                                            set('colorby',action.colorby))
-    case ZONE_UPDATE:
-      return resolve_settings(state,s => s.set('zones',action.value).
+    case TERRAIN_ZONE_UPDATE:
+      return resolve_settings(state,s => s.set('terrain_zones',action.value).
                                            set('colorby',action.colorby))
-    case MOIST_TEMP_UPDATE:
+    case CLIMATE_UPDATE:
       return resolve_settings(state,s => s.set('temp',action.value.temp).
                                            set('moist',action.value.moist).
                                            set('colorby',action.value.colorby))
-    case TILE_UPDATE:
-      return resolve_settings(state,s => s.set('tiles',action.value).
+    case CLIMATE_ZONE_UPDATE:
+      return resolve_settings(state,s => s.set('climate_zones',action.value).
                                            set('colorby',action.colorby))
     case COLORBY_UPDATE:
       return resolve_settings(state,s => s.set('colorby',action.value))
@@ -207,16 +207,16 @@ function flattenHist(xs,N=1000){
   return ys
 }
 
-function generate_zones(state){
+function generate_terrain_zones(state){
   let depths = new Array(state.data.terrain.length)
   let types = new Array(state.data.terrain.length)
 
-  let borders = cumsum(state.settings.getIn(['zones','percent']).toJS())
+  let borders = cumsum(state.settings.getIn(['terrain_zones','percent']).toJS())
   let flattened = flattenHist(state.data.terrain)
 
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
-  let type_depths = state.settings.getIn(['zones','depth']).toJS()
+  let type_depths = state.settings.getIn(['terrain_zones','depth']).toJS()
 
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
@@ -234,7 +234,7 @@ function generate_zones(state){
     ...state,
     data: {
       ...state.data,
-      zones: {depths, types}
+      terrain_zones: {depths, types}
     }
   }
 }
@@ -246,15 +246,16 @@ function find_water_distance(state){
   // searches for distances up to 10% of map or 10 squares whichever is greater
   let num_passes = 6 //Math.max(10,Math.ceil(0.1*Math.max(height,width)))
 
-  let zones = state.data.zones
+  let terrain_zones = state.data.terrain_zones
 
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
-      water_dists[yi*width+xi] = zones.types[yi*width+xi] == 0 ? 0 : Infinity
+      water_dists[yi*width+xi] =
+        terrain_zones.types[yi*width+xi] == 0 ? 0 : Infinity
     }
   }
 
-  let type_depths = state.settings.getIn(['zones','depth']).toJS()
+  let type_depths = state.settings.getIn(['terrain_zones','depth']).toJS()
   let old_water_dists = new Array(width*height)
   for(let i=0;i<water_dists.length;i++)
     old_water_dists[i] = water_dists[i]
@@ -272,10 +273,10 @@ function find_water_distance(state){
           let nyi = neighbors[n][1]
           if(nxi >= 0 && nxi < width && nyi >= 0 && nyi < height &&
              isFinite(old_water_dists[nyi*width+nxi])){
-            let n_level = zones.types[nyi*width+nxi] +
-                          zones.depths[nyi*width+nxi]
-            let cur_level = zones.types[yi*width+xi] +
-                            zones.depths[yi*width+xi]
+            let n_level = terrain_zones.types[nyi*width+nxi] +
+                          terrain_zones.depths[nyi*width+nxi]
+            let cur_level = terrain_zones.types[yi*width+xi] +
+                            terrain_zones.depths[yi*width+xi]
             let ydist = n_level - cur_level
             dists[ndist++] = old_water_dists[nyi*width+nxi] +
                              Math.sqrt(ydist*ydist + 1)
@@ -307,7 +308,7 @@ function find_water_distance(state){
     water_dists = old_water_dists
   }
 
-  let max_zone = state.settings.getIn(['zones','depth']).count()
+  let max_zone = state.settings.getIn(['terrain_zones','depth']).count()
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
       if(!isFinite(water_dists[yi*width+xi]))
@@ -368,10 +369,10 @@ function generate_temperature(state){
     state.settings.getIn(['temp','seed'])
   )
 
-  let zones = state.data.zones
-  let max_zone = state.settings.getIn(['zones','depth']).count()-1
+  let terrain_zones = state.data.terrain_zones
+  let max_zone = state.settings.getIn(['terrain_zones','depth']).count()-1
   let max_dist = (max_zone-1)*height_temp_factor*height + 1.3*height/2
-  let type_depths = state.settings.getIn(['zones','depth']).toJS()
+  let type_depths = state.settings.getIn(['terrain_zones','depth']).toJS()
   let strength = state.settings.getIn(['temp','strength'])
 
   let temps = new Array(width*height)
@@ -380,10 +381,10 @@ function generate_temperature(state){
     for(let xi=0;xi<width;xi++){
       let noise = noises[yi*width+xi]
 
-      let zone_type = zones.types[yi*width+xi]
+      let zone_type = terrain_zones.types[yi*width+xi]
       let zone_step = Math.max(0,zone_type-1)
       let zone_dist = zone_step*(height_temp_factor*height) +
-                      zones.depths[yi*width+xi]*0.1*height
+                      terrain_zones.depths[yi*width+xi]*0.1*height
       let equator_dist = Math.abs(yi-height/2)
 
       let moist = state.data.moist[yi*width+xi]
@@ -414,30 +415,31 @@ Set.prototype.difference = function(setB) {
 }
 
 
-function generate_tiles(state){
+function generate_climate(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
   
   let climate = new Array(width*height)
   let vegetation = new Array(width*height)
   let veg = {
-    arid: state.settings.getIn(['tiles','percent',0]),
-    semiarid: state.settings.getIn(['tiles','percent',1]),
-    tropical: state.settings.getIn(['tiles','percent',2]),
-    wtemp: state.settings.getIn(['tiles','percent',3]),
-    ctemp: state.settings.getIn(['tiles','percent',4]),
-    subarctic: state.settings.getIn(['tiles','percent',5]),
-    arctic: state.settings.getIn(['tiles','percent',6])
+    arid: state.settings.getIn(['climate_zones','percent',0]),
+    semiarid: state.settings.getIn(['climate_zones','percent',1]),
+    tropical: state.settings.getIn(['climate_zones','percent',2]),
+    wtemp: state.settings.getIn(['climate_zones','percent',3]),
+    ctemp: state.settings.getIn(['climate_zones','percent',4]),
+    subarctic: state.settings.getIn(['climate_zones','percent',5]),
+    arctic: state.settings.getIn(['climate_zones','percent',6])
   }
 
   let unused = new Set(_.filter(_.range(width*height),i => {
-    return state.data.zones.types[i] > 0
+    return state.data.terrain_zones.types[i] > 0
   }))
   let total_land = unused.size
 
   let aridness = _.map([...unused],i => {
-    if(state.data.zones.types[i] < 3)
-      return (1-state.data.moist[i])*(1/(1+Math.exp(-4*(state.data.temp[i]-0.8))))
+    if(state.data.terrain_zones.types[i] < 3)
+      return (1-state.data.moist[i])*(
+        1/(1+Math.exp(-4*(state.data.temp[i]-0.8))))
     else
       return 0
   })
@@ -495,11 +497,11 @@ function generate_tiles(state){
   let thresh_veg = (name,climates,value) => {
     let fnoise = map_noise(
       width,height,
-      state.settings.getIn(['tiles','vegetation',name,'smoothness']),
-      state.settings.getIn(['tiles','vegetation',name,'seed'])
+      state.settings.getIn(['climate_zones','vegetation',name,'smoothness']),
+      state.settings.getIn(['climate_zones','vegetation',name,'seed'])
     )
     let flat = flattenHist(fnoise)
-    let fthresh = 1-state.settings.getIn(['tiles','vegetation',name,'density'])
+    let fthresh = 1-state.settings.getIn(['climate_zones','vegetation',name,'density'])
     
     for(let i=0;i<width*height;i++){
       if(flat[i] > fthresh && _.some(climates,x => x === climate[i]))
@@ -519,7 +521,7 @@ function generate_tiles(state){
     ...state,
     data: {
       ...state.data,
-      tiles: {
+      climate_zones: {
         climate: climate,
         vegetation: vegetation
       }

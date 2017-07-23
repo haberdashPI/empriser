@@ -15,7 +15,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
-import {TILE_UPDATE} from '../actions'
+import {CLIMATE_ZONE_UPDATE} from '../actions'
 import {checkNumber} from '../util'
 
 const vegetation = ["forrest","evergreen","jungle","bush","wetland"]
@@ -40,32 +40,38 @@ function updatePercentsFn(index,value){
 class VegetationDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {tiles: this.props.tiles, colorby: this.props.colorby}
+    this.state = {
+      climate_zones: this.props.climate_zones,
+      colorby: this.props.colorby
+    }
   }
   componentWillMount(){
-    this.setState({tiles: this.props.tiles, colorby: this.props.colorby})
+    this.setState({
+      climate_zones: this.props.climate_zones,
+      colorby: this.props.colorby
+    })
   }
 
   setTile(keys,value){
     if(keys[0] == 'percent')
       this.setState({
-        tiles: this.state.tiles.update('percent',
+        climate_zones: this.state.climate_zones.update('percent',
                                        updatePercentsFn(keys[1],value)),
-        colorby: "tiles"
+        colorby: "climate_zones"
       })
     else
       this.setState({
-        tiles: this.state.tiles.setIn(keys,value),
-        colorby: "tiles"
+        climate_zones: this.state.climate_zones.setIn(keys,value),
+        colorby: "climate_zones"
       })
   }
   tile(keys){
-    return this.state.tiles.getIn(keys)
+    return this.state.climate_zones.getIn(keys)
   }
 
   setActive(str){
     this.setState(state => this.state.colorby !== str ?
-                         {colorby: str} : {colorby: "tiles"})
+                         {colorby: str} : {colorby: "climate_zones"})
   }
   iconColor(str){
     return str === this.state.colorby ? "black" : "darkgray"
@@ -78,9 +84,9 @@ class VegetationDialog extends React.Component{
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}>
           <h3 style={{margin: 0, marginBottom: "1em"}}>Vegetation</h3>
-          <FlatButton onClick={() => this.setActive("tiles")}
+          <FlatButton onClick={() => this.setActive("climate_zones")}
                       label="Display" icon={<ViewIcon/>}
-                      style={{color: this.iconColor("tiles")}}/>
+                      style={{color: this.iconColor("climate_zones")}}/>
           <Table selectable={false}>
 
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -158,13 +164,17 @@ class VegetationDialog extends React.Component{
 
 export default connect(state => {
   return {
-    tiles: state.map.settings.get('tiles'),
+    climate_zones: state.map.settings.get('climate_zones'),
     colorby: state.map.settings.get('colorby')
   }
 },dispatch => {
   return {
     onTileUpdate: (state) => {
-      dispatch({type: TILE_UPDATE, value: state.tiles, colorby: state.colorby})
+      dispatch({
+        type: CLIMATE_ZONE_UPDATE,
+        value: state.climate_zones,
+        colorby: state.colorby
+      })
     }
   }
 })(VegetationDialog)

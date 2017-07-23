@@ -23,9 +23,9 @@ function interpColor(a,b,x){
  return a.add(b.subtract(a).multiply(x))
 }
 
-const tileColor_H = [ 60,  37,  93,  112,  92,   73,   0   ]
-const tileColor_S = [ 1,   0.6, 0.7, 0.5,  0.32, 0.15, 0   ]
-const tileColor_L = [ 0.9, 0.8, 0.95, 0.75, 0.65,  0.55, 0.95 ]
+const climateColor_H = [ 60,  37,  93,  112,  92,   73,   0   ]
+const climateColor_S = [ 1,   0.6, 0.7, 0.5,  0.32, 0.15, 0   ]
+const climateColor_L = [ 0.9, 0.8, 0.95, 0.75, 0.65,  0.55, 0.95 ]
 
 const vegetColor_H = [ 116,  116,  133,  80,   58   ]
 const vegetColor_S = [ 1,    1,    0.61, 1,    1    ]
@@ -143,34 +143,34 @@ export default class MapView{
           let level = this.data.moist[yi*width+xi]
           color = interpColor(least_moist,most_moist,level)
                     
-        }else if(this.settings.get('colorby') == 'zones'){
-          let depth = this.data.zones.depths[yi*width+xi]
-          let zone = this.data.zones.types[yi*width+xi]
-          let breadth = this.settings.getIn(['zones','depth',zone])
+        }else if(this.settings.get('colorby') == 'terrain_zones'){
+          let depth = this.data.terrain_zones.depths[yi*width+xi]
+          let zone = this.data.terrain_zones.types[yi*width+xi]
+          let breadth = this.settings.getIn(['terrain_zones','depth',zone])
 
           color.brightness = depth*0.6 + 0.8
           color.hue = zoneColor_H[zone]
           color.saturation = zoneColor_S[zone]
-        }else if(this.settings.get('colorby') == 'tiles'){
-          if(this.data.zones.types[yi*width+xi] == 0){
-            let depth = this.data.zones.depths[yi*width+xi]
-            let breadth = this.settings.getIn(['zones','depth',0])
+        }else if(this.settings.get('colorby') == 'climate_zones'){
+          if(this.data.terrain_zones.types[yi*width+xi] == 0){
+            let depth = this.data.terrain_zones.depths[yi*width+xi]
+            let breadth = this.settings.getIn(['terrain_zones','depth',0])
 
             color.brightness = depth*0.6 + 0.8
             color.hue = zoneColor_H[0]
             color.saturation = zoneColor_S[0]
-          }else if(this.data.tiles.vegetation[yi*width+xi] == GRASSES){
-            let c = this.data.tiles.climate[yi*width+xi]
-            let z = this.data.zones.types[yi*width+xi]
+          }else if(this.data.climate_zones.vegetation[yi*width+xi] == GRASSES){
+            let c = this.data.climate_zones.climate[yi*width+xi]
+            let z = this.data.terrain_zones.types[yi*width+xi]
 
-            color.brightness = tileColor_L[c]*(1-Math.max(0,z-1) * 0.25)
-            color.hue = tileColor_H[c]
-            color.saturation = tileColor_S[c]
+            color.brightness = climateColor_L[c]*(1-Math.max(0,z-1) * 0.25)
+            color.hue = climateColor_H[c]
+            color.saturation = climateColor_S[c]
           }else{
-            let v = this.data.tiles.vegetation[yi*width+xi]
-            let z = this.data.zones.types[yi*width+xi]
+            let v = this.data.climate_zones.vegetation[yi*width+xi]
+            let z = this.data.terrain_zones.types[yi*width+xi]
 
-            color.brightness = tileColor_L[v]*(1-Math.max(0,z-1) * 0.25)
+            color.brightness = climateColor_L[v]*(1-Math.max(0,z-1) * 0.25)
             color.hue = vegetColor_H[v]
             color.saturation = vegetColor_S[v]
           }

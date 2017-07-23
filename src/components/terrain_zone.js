@@ -13,10 +13,10 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 
-import {ZONE_UPDATE} from '../actions'
+import {TERRAIN_ZONE_UPDATE} from '../actions'
 import {checkNumber, DEFAULT_COLORBY} from '../util'
 
-const zones = ["Ocean","Land","Hills","Mountains"]
+const zone_names = ["Ocean","Land","Hills","Mountains"]
 
 function updatePercentsFn(index,value){
   let bValue = Math.min(1,Math.max(0,value))
@@ -35,30 +35,36 @@ function updatePercentsFn(index,value){
   }
 }
 
-class ZoneDialog extends React.Component{
+class TerrainZoneDialog extends React.Component{
   constructor(props){
     super(props)
-    this.state = {zones: this.props.zones, colorby: this.props.colorby}
+    this.state = {
+      terrain_zones: this.props.terrain_zones,
+      colorby: this.props.colorby
+    }
   }
   componentWillMount(){
-    this.setState({zones: this.props.zones, colorby: this.props.colorby})
+    this.setState({
+      terrain_zones: this.props.terrain_zones,
+      colorby: this.props.colorby
+    })
   }
 
   setZone(keys,value){
     if(keys[0] == 'percent')
       this.setState({
-        zones: this.state.zones.update('percent',
-                                       updatePercentsFn(keys[1],value)),
-        colorby: "zones"
+        terrain_zones: this.state.terrain_zones.
+                            update('percent',updatePercentsFn(keys[1],value)),
+        colorby: "terrain_zones"
       })
     else
       this.setState({
-        zones: this.state.zones.setIn(keys,value),
-        colorby: "zones"
+        terrain_zones: this.state.terrain_zones.setIn(keys,value),
+        colorby: "terrain_zones"
       })
   }
   zone(keys){
-    return this.state.zones.getIn(keys)
+    return this.state.terrain_zones.getIn(keys)
   }
 
   setActive(str){
@@ -75,9 +81,9 @@ class ZoneDialog extends React.Component{
       <Paper zDepth={2} className={"terrain-view"}>
         <div style={{padding: "12pt"}}>
           <h3 style={{margin: 0, marginBottom: "1em"}}>Terrain Zones</h3>
-          <FlatButton onClick={() => this.setActive("zones")}
+          <FlatButton onClick={() => this.setActive("terrain_zones")}
                       label="Display" icon={<ViewIcon/>}
-                      style={{color: this.iconColor("zones")}}/>
+                      style={{color: this.iconColor("terrain_zones")}}/>
           <Table selectable={false}>
 
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -89,7 +95,7 @@ class ZoneDialog extends React.Component{
             </TableHeader>
 
             <TableBody displayRowCheckbox={false}>
-              {(_.map(zones,(zone,index) => 
+              {(_.map(zone_names,(zone,index) => 
                 <TableRow key={index}>
                   <TableRowColumn>{zone}</TableRowColumn>
 
@@ -127,13 +133,13 @@ class ZoneDialog extends React.Component{
 
 export default connect(state => {
   return {
-    zones: state.map.settings.get('zones'),
+    terrain_zones: state.map.settings.get('terrain_zones'),
     colorby: state.map.settings.get('colorby')
   }
 },dispatch => {
   return {
     onZoneUpdate: (state) => {
-      dispatch({type: ZONE_UPDATE, value: state.zones, colorby: state.colorby})
+      dispatch({type: TERRAIN_ZONE_UPDATE, value: state.terrain_zones, colorby: state.colorby})
     }
   }
-})(ZoneDialog)
+})(TerrainZoneDialog)

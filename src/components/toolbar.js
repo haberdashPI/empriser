@@ -12,7 +12,7 @@ import IconMenu from 'material-ui/IconMenu'
 import MenuItem from 'material-ui/MenuItem'
 import Paper from 'material-ui/Paper'
 
-import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
+import MoveIcon from 'material-ui/svg-icons/action/pan-tool'
 import ZoomInIcon from 'material-ui/svg-icons/action/zoom-in'
 import ZoomOutIcon from 'material-ui/svg-icons/action/zoom-out'
 import EditIcon from 'material-ui/svg-icons/editor/mode-edit'
@@ -25,11 +25,12 @@ import {ClimateIcon, ZoneIcon, ClimateZoneIcon} from './icons'
 import {ZOOM,READY_MOVE,LOAD_MAP} from '../actions'
 
 import TerrainDialog from './terrain'
-import ZoneDialog from './zone'
-import MoistTempDialog from './moist_temp'
-import ViewDialog from './view'
-import ClimatesDialog from './climates'
+import TerrainZoneDialog from './terrain_zone'
+import ClimateDialog from './climate'
+import ClimateZoneDialog from './climate_zone'
 import VegetationDialog from './vegetation'
+
+import ViewDialog from './view'
 import SaveDialog from './save'
 import LoadDialog from './load'
 
@@ -124,7 +125,7 @@ class MapToolbar extends React.Component{
           <Toolbar>
             <ToolbarGroup firstChild={true}>
               <IconButton onClick={() => this.setActive("move")}>
-                <PanToolIcon color={this.iconColor("move")}/>
+                <MoveIcon color={this.iconColor("move")}/>
               </IconButton>
               <IconButton onClick={() => this.setActive("view")}>
                 <ViewIcon color={this.iconColor("view")}/>
@@ -174,13 +175,13 @@ class MapToolbar extends React.Component{
            <TerrainDialog/> : null}
           {(this.state.active === "edit" &&
             this.state.subactive === "zone") ?
-           <ZoneDialog/> : null}
+           <TerrainZoneDialog/> : null}
           {(this.state.active === "edit" &&
             this.state.subactive === "moist_temp") ?
-           <MoistTempDialog/> : null}
+           <ClimateDialog/> : null}
           {(this.state.active === "edit" &&
             this.state.subactive === "climate") ?
-           <ClimatesDialog/> : null}
+           <ClimateZoneDialog/> : null}
           {(this.state.active === "edit" &&
             this.state.subactive === "vegetation") ?
            <VegetationDialog/> : null}

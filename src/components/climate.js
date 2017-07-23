@@ -14,9 +14,9 @@ import RaisedButton from 'material-ui/RaisedButton'
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
-import {MOIST_TEMP_UPDATE} from '../actions'
+import {CLIMATE_UPDATE} from '../actions'
 
-class MoistTempDialog extends React.Component{
+class ClimateDialog extends React.Component{
   constructor(props){
     super(props)
     this.state = {
@@ -171,7 +171,7 @@ export default connect(state => {
 },dispatch => {
   return {
     onMoistTempUpdate: (state) => {
-      dispatch({type: MOIST_TEMP_UPDATE, value: state})
+      dispatch({type: CLIMATE_UPDATE, value: state})
     }
   }
-})(MoistTempDialog)
+})(ClimateDialog)

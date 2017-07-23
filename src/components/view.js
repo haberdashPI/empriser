@@ -22,10 +22,10 @@ class ViewDialog extends React.Component{
           <RadioButtonGroup name="" valueSelected={this.props.colorby}
                             onChange={(e,v) => this.props.onColorby(v)}>
             <RadioButton value="terrain" label="Terrain"/>
-            <RadioButton value="zones" label="Zones"/>
+            <RadioButton value="terrain_zones" label="Terrain Zones"/>
             <RadioButton value="temp" label="Temperature"/>
             <RadioButton value="moist" label="Moisture"/>
-            <RadioButton value="tiles" label="Tiles"/>
+            <RadioButton value="climate_zones" label="Climate Zones"/>
           </RadioButtonGroup>
         </div>
       </Paper>
