@@ -108,7 +108,7 @@ export default function map(state = resolve_settings(initial_state), action){
                         updateIn(['view','y'],y => y + action.y / scale)
       }
     case LOAD_MAP:
-      return resolve_settings({state: action.value})
+      return resolve_settings({settings: fromJS(action.value)})
     default:
       return state;
   }

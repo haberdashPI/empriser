@@ -11,8 +11,6 @@ import FlatButton from 'material-ui/FlatButton'
 import IconMenu from 'material-ui/IconMenu'
 import MenuItem from 'material-ui/MenuItem'
 import Paper from 'material-ui/Paper'
-import Dialog from 'material-ui/Dialog'
-import Download from '@axetroy/react-download'
 
 import PanToolIcon from 'material-ui/svg-icons/action/pan-tool'
 import ZoomInIcon from 'material-ui/svg-icons/action/zoom-in'
@@ -32,6 +30,8 @@ import MoistTempDialog from './moist_temp'
 import ViewDialog from './view'
 import ClimatesDialog from './climates'
 import VegetationDialog from './vegetation'
+import SaveDialog from './save'
+import LoadDialog from './load'
 
 injectTapEventPlugin();
 
@@ -142,15 +142,33 @@ class MapToolbar extends React.Component{
                 iconButtonElement={<IconButton><MoreVertIcon/></IconButton>}
                 anchorOrigin={{horizontal: 'left', vertical: 'top'}}
                 targetOrigin={{horizontal: 'left', vertical: 'top'}}>
-                <Download file="map.json" content={ddata}>
-                  <MenuItem primaryText="Save…"/>
-                </Download>
-                <MenuItem primaryText="Save Image…"/>
-                <MenuItem primaryText="Load…"/>
-                <MenuItem primaryText="Settings…"/>
+                <MenuItem primaryText="Save…"
+                          onClick={() => this.setState({saveOpen: true})}/>
+                <MenuItem primaryText="Load…"
+                          onClick={() => this.setState({loadOpen: true})}/>
               </IconMenu>
             </ToolbarGroup>
           </Toolbar>
+          {(!this.state.loadOpen ? null :
+            <LoadDialog
+              onLoad={
+                (name,data) => {
+                  this.setState({
+                    filename: name,
+                    loadOpen: false
+                  })
+                  this.props.onLoad(data)
+                }}
+              onCancel={() => this.setState({loadOpen: false})}/>)}
+          {(!this.state.saveOpen ? null :
+            <SaveDialog
+              data={ddata}
+              filename={this.state.filename || "map"}
+              onConfirm={(name) => this.setState({
+                  saveOpen: false,
+                  filename: name
+              })}
+              onCancel={() => this.setState({saveOpen: false})}/>)}
           {(this.state.active === "edit" &&
             this.state.subactive === "terrain") ?
            <TerrainDialog/> : null}

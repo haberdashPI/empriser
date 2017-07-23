@@ -55,12 +55,16 @@ The steps are:
 
 This short stage will yield a usable website. We need to:
 
-- [x] be able to save map settings as a file: settings should include the generation
+- [ ] be able to save map settings as a file: settings should include the generation
 parameters plus the particular view we're looking at
+    * [x] basic save
+    * [x] be able to change the file name
 
-- [ ] be able to load a saved map
+- [x] be able to load a saved map
 
-- [ ] be able to save a view as an image (e.g. using .toDataURL())
+- [x] be able to save a given view as an image (e.g. using .toDataURL())
+  this currently works through right click on the canvas (no need to implement)
+  I my need to revisit this when I switch to PIXI
 
 - [ ] host the resulting website on github
 
@@ -79,16 +83,20 @@ to make it look nice and presentable.
 * improve zoom interface: I didn't make this better earlier because
   paper.js is slow
 * add noisy border to tiles
-* add noisy interior
-* add legends to make the map easier to read
-* add annotations for:
+* add basic annotations for:
     - moutains
     - hills
     - vegetation
+* add noisy interior
+* improve annotations for
+    - moutains
+    - hills
+    - vegetation
+* add legends to make the map easier to read
 * improve color interpolation (use color brewer) for various views
 * add a spinner during terrain generation?? 
   (this will require breaking up the loops, maybe by
-  having a schedular??)
+  having a schedular, or just a web worker, maybe use typed arrays at this point??)
 
 * display the exact coordinates and scale to allow easy recovery
 * allow exact coordinates and scale to be set
@@ -100,7 +108,7 @@ Anything I didn't finish in stage two, I now finalize here.
 * scale parameter: allow the scale of continents to be selected
 * optimization: implement terrain generation using typed arrays
 * wind generation to create adjusted moisture and temperature values
-* create rivers
+* generate rivers
 
 # Stage 5: simple location generation
 
