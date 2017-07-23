@@ -29,7 +29,7 @@ module.exports = {
     ]
   },
   plugins: [new  HtmlWebpackPlugin({
-    title: "earhart",      
+    title: "Empriser",      
     template: 'src/index.ejs'
   })]
 };
