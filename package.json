@@ -4,7 +4,7 @@
   "description": "procedural map generation",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --config=webpack.build.config.js",
     "serve": "webpack-dev-server --progress --colors",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
