@@ -6,7 +6,8 @@ import {MOVE} from '../actions'
 
 import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
         COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
-        FORREST,  JUNGLE,  EVERGREEN,  BUSH,  WETLAND} from '../reducers/map'
+        FORREST,  JUNGLE,  EVERGREEN,  BUSH,
+        WETLAND} from '../reducers/climate'
 
 import {hexX, hexY} from '../util'
 

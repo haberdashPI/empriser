@@ -139,7 +139,11 @@ export default connect(state => {
 },dispatch => {
   return {
     onZoneUpdate: (state) => {
-      dispatch({type: TERRAIN_ZONE_UPDATE, value: state.terrain_zones, colorby: state.colorby})
+      dispatch({
+        type: TERRAIN_ZONE_UPDATE,
+        value: state.terrain_zones,
+        colorby: state.colorby
+      })
     }
   }
 })(TerrainZoneDialog)
