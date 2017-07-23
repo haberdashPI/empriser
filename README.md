@@ -23,7 +23,7 @@ Map generation is fully functional, but in its infancy.
 ## Current Plans
 
 * Optimize map display (via [PIXI.js](https://github.com/pixijs/pixi.js))
-* Improve map appearances (more realistic looking maps)
+* Improve map appearance (more realistic looking maps)
 * Add legends and mouseover (to know what each tile represents)
 
 There are many more plans ahead, these are just the up-and-coming changes.
