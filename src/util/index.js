@@ -10,7 +10,11 @@ export function hexY(a,b){
 }
 
 export function hex_neighbors(a,b){
-  return [[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+  if(Math.abs(b % 2) === 0)
+    return [[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+  else{
+    return [[a-1,b-1],[a,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+  }
 }
 
 export function checkNumber(name,str,isint=true,
