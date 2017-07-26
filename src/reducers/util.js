@@ -82,7 +82,7 @@ export function flattenHist(xs,N=1000){
 
     ys[i] = sbin === ebin ? start :
             start + (start-end) * (rbin-ebin)/(sbin-ebin)
-    
+
   }
   return ys
 }

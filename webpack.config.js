@@ -12,24 +12,47 @@ module.exports = {
     extensions: [".webpack.js", ".web.js", ".js", ".json", ".jsx"]
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015','react'],
-          plugins: ['transform-object-rest-spread']
-        }
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['es2015','react'],
+              plugins: ['transform-object-rest-spread']
+            }
+          }
+        ]
       },
       {
         test: /\.less$/,
-        loader: ['style-loader', 'css-loader', 'less-loader']
+        use: [
+          'style-loader',
+          'css-loader',
+          'less-loader'
+        ]
+      },
+      {
+        test: /\.(png|jpg|gif)$/,
+        use: {
+          loader: 'url-loader',
+          options: {
+            limit: 8192
+          }
+        }
+
+      },
+      {
+        test: /\.(glsl|frag|vert)$/,
+        exclude: /node_modules/,
+        use: ['raw-loader','glslify-loader']
       }
     ]
   },
   plugins: [new  HtmlWebpackPlugin({
-    title: "Empriser",      
+    title: "Empriser",
     template: 'src/index.ejs'
   })]
 };

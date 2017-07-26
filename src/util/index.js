@@ -32,4 +32,8 @@ export function checkNumber(name,str,isint=true,
     return name+" must be a number"
 }
 
-export const DEFAULT_COLORBY = "tiles"
+export function clamp(x,min=-Infinity,max=Infinity){
+  return Math.max(min,Math.min(max,x))
+}
+
+export const DEFAULT_COLORBY = "terrain"

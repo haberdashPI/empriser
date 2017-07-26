@@ -66,7 +66,7 @@ parameters plus the particular view we're looking at
   this currently works through right click on the canvas (no need to implement)
   I my need to revisit this when I switch to PIXI
 
-- [ ] host the resulting website on github
+- [x] host the resulting website on github
 
 # Stage 2.1: code refactoring
 
@@ -74,12 +74,16 @@ There is some cruft in the code. Confusing names for anyone trying to read the
 source that aren't the same as those in the user interface. Also a few
 organizational issues (we can probably breakup map.js into severla files)
 
+DONE!!!
+
 # Stage 3: improved graphics
 
 In this stage I work on an initial cleaning up the appearance of the map
-to make it look nice and presentable. 
+to make it look nice and presentable. j
 
 * switch from Paper.j to PIXI - same output, just faster
+* change draggable to not be a setting (it shouldn't be saved)
+* set limits on position and zoom based on map size
 * improve zoom interface: I didn't make this better earlier because
   paper.js is slow
 * add noisy border to tiles
@@ -87,6 +91,9 @@ to make it look nice and presentable.
     - moutains
     - hills
     - vegetation
+
+at this point, I think mapping should be qui
+
 * add noisy interior
 * improve annotations for
     - moutains

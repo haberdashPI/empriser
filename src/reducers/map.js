@@ -2,7 +2,7 @@ import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
         MOVE, LOAD_MAP} from '../actions'
-import {randomStr} from '../util'
+import {randomStr,clamp,DEFAULT_COLORBY} from '../util'
 
 import generate_terrain from './terrain'
 import generate_terrain_zones from './terrain_zones'
@@ -42,8 +42,8 @@ const initial_state = {
         wetland: {density: 0.1, smoothness: 0.4, seed: randomStr()}
       }
     },
-    colorby: "climate_zones",
-    view: {scale: 10, x: 0, y: 0, draggable: false}
+    colorby: DEFAULT_COLORBY,
+    view: {scale: 1, x: 0, y: 0, draggable: false}
   }),
 
   data: {},
@@ -58,10 +58,22 @@ function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
 }
 
 export default function map(state = resolve_settings(initial_state), action){
+  let width
+  let height
+  let maxZoom
   switch(action.type){
     case TERRAIN_UPDATE:
-      return resolve_settings(state,s => s.set('terrain',action.value).
-                                           set('colorby',action.colorby))
+      width = action.value.get('width')
+      height = action.value.get('height')
+      maxZoom = Math.max(width,height)
+
+      return resolve_settings(state,s => {
+        return s.set('terrain',action.value).
+                 set('colorby',action.colorby).
+                 updateIn(['view','x'],x => clamp(x,-width/2,width/2)).
+                 updateIn(['view','y'],y => clamp(y,-height/2,height/2)).
+                 updateIn(['view','scale'],s => clamp(s,1,maxZoom))
+      })
     case TERRAIN_ZONE_UPDATE:
       return resolve_settings(state,s => s.set('terrain_zones',action.value).
                                            set('colorby',action.colorby))
@@ -75,10 +87,14 @@ export default function map(state = resolve_settings(initial_state), action){
     case COLORBY_UPDATE:
       return resolve_settings(state,s => s.set('colorby',action.value))
     case ZOOM:
+      width = state.settings.getIn(['terrain','width'])
+      height = state.settings.getIn(['terrain','height'])
+      maxZoom = Math.max(width,height)
       return {
         ...state,
-        settings: state.settings.updateIn(['view','scale'],
-                                          s => s * action.value)
+        settings: state.settings.
+                        updateIn(['view','scale'],
+                                 s => clamp(s * action.value,1,maxZoom))
       }
     case READY_MOVE:
       return {
@@ -87,12 +103,16 @@ export default function map(state = resolve_settings(initial_state), action){
       }
     case MOVE:
       let scale = state.settings.getIn(['view','scale'])
-      return {
-        ...state,
-        settings: state.settings.
-                        updateIn(['view','x'],x => x + action.x / scale).
-                        updateIn(['view','y'],y => y + action.y / scale)
-      }
+      width = state.settings.getIn(['terrain','width'])
+      height = state.settings.getIn(['terrain','height'])
+      let settings =
+        state.settings.
+              updateIn(['view','x'],
+                       x => clamp(x + action.x / scale,-width/2,width/2)).
+              updateIn(['view','y'],
+                       y => clamp(y + action.y / scale,-height/2,height/2))
+
+      return {...state, settings: settings}
     case LOAD_MAP:
       return resolve_settings({settings: fromJS(action.value)})
     default:
