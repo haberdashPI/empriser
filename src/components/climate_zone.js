@@ -25,7 +25,7 @@ function updatePercentsFn(index,value){
     return percents.withMutations(percents => {
       percents = percents.set(index,bValue)
       let delta = (1 - percents.reduce((x,y) => x+y))/(percents.count()-1)
-      
+
       for(let i=0;i<percents.count();i++){
         if(i != index){
           percents = percents.update(i,x => Math.min(1,Math.max(0,x + delta)))
@@ -70,7 +70,7 @@ class ClimateZoneDialog extends React.Component{
 
   setActive(str){
     this.setState(state => this.state.colorby !== str ?
-                         {colorby: str} : {colorby: "climate_zones"})
+                         {colorby: str} : {colorby: DEFAULT_COLORBY})
   }
   iconColor(str){
     return str === this.state.colorby ? "black" : "darkgray"
@@ -95,7 +95,7 @@ class ClimateZoneDialog extends React.Component{
             </TableHeader>
 
             <TableBody displayRowCheckbox={false}>
-              {(_.map(climate_names,(climate,index) => 
+              {(_.map(climate_names,(climate,index) =>
                 <TableRow key={index}>
                   <TableRowColumn>{climate}</TableRowColumn>
 

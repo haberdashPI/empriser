@@ -22,9 +22,7 @@ const least_moist = [255/255,205/255,112/255]
 const most_temp = [168/255,0,0]
 const least_temp = [14/255,0,143/255]
 
-import grass_img from '../images/grass.jpg'
 import terrain_shader from './shaders/terrain.glsl'
-import my_shader from './my_shader.glsl'
 
 /* function interpColor(a,b,x){
  *  return a.add(b.subtract(a).multiply(x))
