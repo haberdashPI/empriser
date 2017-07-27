@@ -83,10 +83,20 @@ to make it look nice and presentable. j
 
 * switch from Paper.j to PIXI - same output, just faster
 * change draggable to not be a setting (it shouldn't be saved)
+* allow x to wrap (mark edge??)
 * set limits on position and zoom based on map size
 * improve zoom interface: I didn't make this better earlier because
   paper.js is slow
 * add noisy border to tiles
+  PLAN: interploate between the three closest hex centers 
+  (use floor of acos(normalized dot product) to find closest two neighbors)
+  each center point has some small noisy value subtracted from its distance, of
+  no more than 1/6 (so the total between the three interpolated points is never
+  more than 1/2).
+
+  eventually we can also use a texture to have some colorful transition, rather
+  than a sudden switch.
+
 * add basic annotations for:
     - moutains
     - hills
