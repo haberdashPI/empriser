@@ -32,7 +32,7 @@ vec2 img2wld(vec2 img){
 }
 
 const float r = 0.5; // hex radius
-const float s = 1.0/sqrt(3.0); //sqrt(3.0)/4.0; // hex side length
+const float s = 1.0/sqrt(3.0); // hex side length
 
 vec2 wld2axl(vec2 wld){
   float t1 = wld.y / s;
@@ -44,6 +44,12 @@ vec2 wld2axl(vec2 wld){
   return axl;
 }
 
+const vec2 axX = vec2(1.0,0.5);
+const vec2 axY = vec2(0.0,0.5/s);
+vec2 axl2wld(vec2 axl){
+  return vec2(dot(axl,axX),dot(axl,axY));
+}
+
 vec2 axl2hex(vec2 axl){
   vec2 hex;
   hex.x = axl.x + (axl.y - mod(axl.y,2.0)) / 2.0;
@@ -53,6 +59,39 @@ vec2 axl2hex(vec2 axl){
 
 vec2 img2hex(vec2 img){
   return axl2hex(wld2axl(img2wld(img)));
+}
+
+vec2 img2axl(vec2 img){
+  return wld2axl(img2wld(img));
+}
+
+const float pi = 3.1415926535897932384626433832795;
+
+vec4 closest_neighbors(vec2 axl,vec2 wld){
+  vec2 c = axl2wld(axl);
+  vec2 dir = wld - c;
+  float angle = acos(dir.x / length(dir));
+  if(wld.y > c.y){
+    if(angle < pi/3.0)
+      return vec4(axl.x+1.0, axl.y,
+                  axl.x,     axl.y+1.0);
+    else if(angle < 2.0*pi/3.0)
+      return vec4(axl.x,     axl.y+1.0,
+                  axl.x-1.0, axl.y+1.0);
+    else
+      return vec4(axl.x-1.0, axl.y+1.0,
+                  axl.x-1.0, axl.y);
+  }else{
+    if(angle < pi/3.0)
+      return vec4(axl.x+1.0, axl.y-1.0,
+                  axl.x+1.0, axl.y);
+    else if(angle < 2.0*pi/3.0)
+      return vec4(axl.x,     axl.y-1.0,
+                  axl.x+1.0, axl.y-1.0);
+    else
+      return vec4(axl.x-1.0, axl.y,
+                  axl.x,     axl.y-1.0);
+  }
 }
 
 // # pragma glslify: export(img2hex)
