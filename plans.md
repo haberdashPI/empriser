@@ -81,12 +81,16 @@ DONE!!!
 In this stage I work on an initial cleaning up the appearance of the map
 to make it look nice and presentable. j
 
-* switch from Paper.j to PIXI - same output, just faster
-* change draggable to not be a setting (it shouldn't be saved)
-* allow x to wrap (mark edge??)
-* set limits on position and zoom based on map size
-* improve zoom interface: I didn't make this better earlier because
+X improve zoom interface: I didn't make this better earlier because
   paper.js is slow
+* switch from Paper.j to PIXI - same output, just faster
+  - [x] implemented terrain
+  - [x] implemented terrain zones
+  - [x] implemented moisture
+  - [x] implemented temperature
+  - [x] implemented climate zones
+
+* improve colors for climate zone view
 * add noisy border to tiles
   PLAN: interploate between the three closest hex centers 
   (use floor of acos(normalized dot product) to find closest two neighbors)
@@ -102,15 +106,27 @@ to make it look nice and presentable. j
     - hills
     - vegetation
 
-at this point, I think mapping should be qui
-
 * add noisy interior
+
+At this point I can definitely create my Aleron map
+
+* allow navigation in all modes and remove the hand from the toolbar
+* allow x to wrap (mark edge??)
+* set limits on position and zoom based on map size
+* zoom to mouse point (not screen center)
+* allow for modern navigation (use scroll to move around the map, pinch to zoom)
+
 * improve annotations for
     - moutains
     - hills
     - vegetation
+
+* optimzie switching from one terrain to another (only copy once)
+
 * add legends to make the map easier to read
-* improve color interpolation (use color brewer) for various views
+* improve color interpolation (use color brewer) for helper views
+* add black border to hexes in the helper views
+
 * add a spinner during terrain generation?? 
   (this will require breaking up the loops, maybe by
   having a schedular, or just a web worker, maybe use typed arrays at this point??)
@@ -125,7 +141,7 @@ Anything I didn't finish in stage two, I now finalize here.
 * scale parameter: allow the scale of continents to be selected
 * optimization: implement terrain generation using typed arrays
 * wind generation to create adjusted moisture and temperature values
-* generate rivers
+* generate rivers based on moisture concentrations near mountains
 
 # Stage 5: simple location generation
 

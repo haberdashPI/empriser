@@ -17,13 +17,12 @@ Map generation is fully functional, but in its infancy.
 
 ## Limitations
 * there are no legends - you have to infer the meaning of the color codes on the map
-* Navigation is slow
 * Still kind of ugly looking
 
 ## Current Plans
 
-* Optimize map display (via [PIXI.js](https://github.com/pixijs/pixi.js))
 * Improve map appearance (more realistic looking maps)
+* Improve map navigation (zoom to point, x wrap-around, optionally use modern touch controls)
 * Add legends and mouseover (to know what each tile represents)
 
 There are many more plans ahead, these are just the up-and-coming changes.

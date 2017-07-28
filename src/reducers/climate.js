@@ -1,6 +1,8 @@
 import {map_noise,flattenHist} from './util'
 import _ from 'underscore'
 
+export const CLIMATE_BITS = 1
+
 export const ARID = 0
 export const SEMIARID = 1
 export const TROPICAL = 2
@@ -8,6 +10,8 @@ export const WARM_TEMPERATE = 3
 export const COLD_TEMPERATE = 4
 export const SUBARCTIC = 5
 export const ARCTIC = 6
+
+export const VEG_BITS = 8
 
 export const GRASSES = 0
 export const FORREST = 1
@@ -27,7 +31,7 @@ Set.prototype.difference = function(setB) {
 export default function generate_climate(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
-  
+
   let climate = new Array(width*height)
   let vegetation = new Array(width*height)
   let veg = {
@@ -67,7 +71,7 @@ export default function generate_climate(state){
     }
   }
   unused = unused.difference(new_used)
-  
+
   let tropicness = _.map([...unused],i => {
     let m = state.data.moist[i]
     let t = state.data.temp[i]
@@ -85,9 +89,9 @@ export default function generate_climate(state){
     }
   }
   unused = unused.difference(new_used)
-  
+
   let temp_flat = flattenHist(_.map([...unused],i => state.data.temp[i]))
-  
+
   norm = unused.size/total_land
   ii = 0;
   for(let i of unused){
@@ -102,7 +106,7 @@ export default function generate_climate(state){
       climate[i] = ARCTIC
     }
   }
-  
+
   let thresh_veg = (name,climates,value) => {
     let fnoise = map_noise(
       width,height,
@@ -111,13 +115,13 @@ export default function generate_climate(state){
     )
     let flat = flattenHist(fnoise)
     let fthresh = 1-state.settings.getIn(['climate_zones','vegetation',name,'density'])
-    
+
     for(let i=0;i<width*height;i++){
       if(flat[i] > fthresh && _.some(climates,x => x === climate[i]))
         vegetation[i] = value
     }
   }
-  
+
   for(let i=0;i<vegetation.length;i++) vegetation[i] = GRASSES
 
   thresh_veg('forrest',[WARM_TEMPERATE],FORREST)
@@ -125,7 +129,7 @@ export default function generate_climate(state){
   thresh_veg('jungle',[TROPICAL],JUNGLE)
   thresh_veg('bush',[SEMIARID,WARM_TEMPERATE],BUSH)
   thresh_veg('wetland',[TROPICAL,WARM_TEMPERATE,COLD_TEMPERATE],EVERGREEN)
-  
+
   return {
     ...state,
     data: {
