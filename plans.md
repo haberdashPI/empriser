@@ -90,8 +90,8 @@ X improve zoom interface: I didn't make this better earlier because
   - [x] implemented temperature
   - [x] implemented climate zones
 
-* improve colors for climate zone view
-* add noisy border to tiles
+X * improve colors for climate zone view
+X * add noisy border to tiles
   PLAN: interploate between the three closest hex centers 
   (use floor of acos(normalized dot product) to find closest two neighbors)
   each center point has some small noisy value subtracted from its distance, of
@@ -101,14 +101,17 @@ X improve zoom interface: I didn't make this better earlier because
   eventually we can also use a texture to have some colorful transition, rather
   than a sudden switch.
 
-* add basic annotations for:
+X * add basic annotations for:
     - moutains
     - hills
-    - vegetation
 
-* add noisy interior
+X * add noisy interior
 
 At this point I can definitely create my Aleron map
+
+* fix bug on edge of large maps
+* fix bug in moisture calculation for large maps
+* use typed arrays now??
 
 * allow navigation in all modes and remove the hand from the toolbar
 * allow x to wrap (mark edge??)

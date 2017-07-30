@@ -28,152 +28,118 @@ const vec3 climate6 = vec3(252.0/255.0,252.0/255.0,255.0/255.0);
 
 const vec3 elevation = vec3(120.0/255.0,120.0/255.0,087.0/255.0);
 
-// const vec3 veg_0 = vec3(116.0/360.0,1.0,0.25);
-// const vec3 veg_1 = vec3(116.0/360.0,1.0,0.53);
-// const vec3 veg_2 = vec3(133.0/360.0,0.61,0.19);
-// const vec3 veg_3 = vec3(80.0/360.0,1.0,0.53);
-// const vec3 veg_4 = vec3(58.0/360.0,1.0,0.15);
+float fbm(vec2 p,float c,float H){
+  float sum = 0.0;
+  for(int i=0;i<5;i++){
+    sum += c * cnoise(p);
+    c *= H;
+    p *= 2.0;
+  }
 
-float elnoise(vec2 wld,int zone){
-  float amt = 0.0;
-  wld /= 3.0;
-  if(zone == 2)
-    amt += 0.3*cnoise(4.0*wld) +
-      0.1*cnoise(8.0*wld) +
-      0.05*cnoise(16.0*wld);
-
-  if(zone == 3)
-    amt += 0.3*cnoise(4.0*wld) +
-      0.15*cnoise(8.0*wld) +
-      0.075*cnoise(16.0*wld);
-
-  return 2.0*(float(zone)-1.9)*(float(zone)-1.9)*amt;
+  return sum;
 }
 
-float edgeify(float edge,float x,float k){
-  if(edge < k) return x*edge/k + (1.0-edge/k);
-  else return x;
+float elnoise(vec2 wld,int zone){
+  if(zone == 0) return fbm(3.0 * wld,0.4,0.75);
+  if(zone == 1) return fbm(0.3 * wld,0.1,0.4); //fbm(1.0 * wld,0.3,0.35);
+  else if(zone == 2) return fbm(0.4 * wld,0.1,0.4);
+  else if(zone == 3) return fbm(0.2 * wld,0.3,0.75);
+}
+
+float edgeify(float edge,float x,float amt){
+  if(edge < amt){
+    return x*edge/amt +(1.0-edge/amt);
+  }else return x;
 }
 
 float elshade(float edge,vec2 wld,int zone){
-  if(zone > 1){
-    vec2 dir;
-    dir.x = elnoise(wld,zone) - elnoise(wld+0.001,zone);
-    dir.y = elnoise(-wld,zone) - elnoise(-wld-0.001,zone);
+  vec2 dir;
+  // find derivatives
+  dir.x = elnoise(wld,zone) - elnoise(wld+0.001,zone);
+  dir.y = elnoise(-wld,zone) - elnoise(-wld-0.001,zone);
 
-    float el = dot(vec2(1.0,0.0),dir) * float(zone-1) / length(dir);
-    return 0.75 + edgeify(edge,el,0.4)*(1.0-0.75);
-  }
-  return 1.0;
+  // calculate dot product to find shading vs. generic light source
+  float el = dot(vec2(1.0,0.0),dir) / length(dir);
+  float atten;
+  if(zone > 0) atten = 0.1*(4.0-float(zone)) + 0.65;
+  else atten = 0.9;
+  return atten + el*(1.0-atten);
 }
 
-vec3 climateColor0(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
-
-  float sand = 0.8 + 0.1*cnoise(100.0*wld) +
-    0.05*cnoise(200.0*wld) +
-    0.025*cnoise(400.0*wld) +
-    0.05*cnoise(3.0*wld);
-  // sand = edgeify(edge,sand,0.1);
-
-  return climate0*vec3(el,el,el)*vec3(sand,sand,sand);
+float patchy(vec2 wld){
+  float result = 0.75;
+  result += 0.12*step(-0.5,fbm(wld,1.0,0.6));
+  result += 0.12*step(-0.5,fbm(-wld,1.0,0.6));
+  return result;
 }
 
-vec3 climateColor1(float edge,vec2 wld,int zone){
+vec4 climateColor(vec3 color,float edge,vec2 wld,int zone){
   float el = elshade(edge,wld,zone);
-  return mix(climate1,elevation,max(0.0,float(zone)-1.0))*
-    vec3(el,el,el);
-}
-vec3 climateColor2(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
+  vec4 col;
+  if(zone < 3)
+    col.rgb = color*el*patchy(wld);
+  else
+    col.rgb = mix(color,elevation,0.7)*el*patchy(wld);
+  col.a = 1.0;
 
-  vec3 color = mix(climate2*vec3(1.2,1.2,1.2),climate3*vec3(0.8,0.8,0.8),grass);
-
-  return mix(color,elevation,max(0.0,float(zone)-1.0))*vec3(el,el,el);
-}
-vec3 climateColor3(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
-  return mix(climate3,elevation,max(0.0,float(zone)-1.0))*
-    vec3(el,el,el);
-}
-vec3 climateColor4(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
-  return mix(climate4,elevation,max(0.0,float(zone)-1.0))*
-    vec3(el,el,el);
-}
-vec3 climateColor5(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
-  return elevation*vec3(el,el,el);
-}
-vec3 climateColor6(float edge,vec2 wld,int zone){
-  float el = elshade(edge,wld,zone);
-  return climate6*vec3(el,el,el);
+  return col;
 }
 
 float noisy_dist(vec2 a,vec2 b){
   vec2 diff = b-a;
-  return length(diff) +
-    2.0*(0.13    * (cnoise(03.0*(normalize(diff) + a))+1.0) +
-         0.065   * (cnoise(06.0*(normalize(diff) + a))+1.0) +
-         0.0325  * (cnoise(12.0*(normalize(diff) + a))+1.0) +
-         0.01625 * (cnoise(24.0*(normalize(diff) + a))+1.0));
-}
-
-vec4 hex_color(vec2 hex,vec2 wld){
-  if(hex.x < 0.0 || hex.y < 0.0 || hex.x >= map_dims.x || hex.y >= map_dims.y)
-    return vec4(1.0,1.0,1.0,1.0);
-
-  vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
-  int zone = int(255.0*tex.x)-1;
-  float depth = tex.y;
-  int vegetation = int(255.0*tex.z / 8.0)-1;
-  int climate = int(mod(255.0*tex.z,8.0))-1;
-
-  if(zone == 0) return zoneColor(zone_h_0,zone_s_0,depth);
-  else{ // if(vegetation == 0){
-    if(climate == 0) returngb = climateColor0(wld,zone);
-    else if(climate == 1) return climateColor1(wld,zone);
-    else if(climate == 2) return climateColor2(wld,zone);
-    else if(climate == 3) return climateColor3(wld,zone);
-    else if(climate == 4) return climateColor4(wld,zone);
-    else if(climate == 5) return climateColor5(wld,zone);
-    else if(climate == 6) return climateColor6(wld,zone);
-  }
-  // else{
-  //   if(vegetation == 1) gl_FragColor = climateColor(veg_0,zone);
-  //   else if(vegetation == 2) gl_FragColor = climateColor(veg_1,zone);
-  //   else if(vegetation == 3) gl_FragColor = climateColor(veg_2,zone);
-  //   else if(vegetation == 4) gl_FragColor = climateColor(veg_3,zone);
-  //   else if(vegetation == 5) gl_FragColor = climateColor(veg_4,zone);
-  // }
+  return length(diff) + fbm(1.5*(normalize(diff) + a),3.0*0.13,0.7) + 3.0*0.13;
 }
 
 void main(void){
   vec2 wld = img2wld(tex2img(vTextureCoord.xy,filterArea));
   vec2 axl = wld2axl(wld);
 
-  vec2 n1 = axl2hex(axl);
-  vec2 np1 = axl2wld(axl);
-
   vec4 n23 = closest_neighbors(axl,wld);
-
-  vec2 n2 = axl2hex(n23.xy);
+  vec2 np1 = axl2wld(axl);
   vec2 np2 = axl2wld(n23.xy);
-
-  vec2 n3 = axl2hex(n23.zw);
   vec2 np3 = axl2wld(n23.zw);
 
   float dist1 = noisy_dist(wld,np1);
   float dist2 = noisy_dist(wld,np2);
   float dist3 = noisy_dist(wld,np3);
+  float edge;
+  vec2 hex;
+  if(dist1 < dist2 && dist1 < dist3){
+    if(dist2 < dist3) edge = dist2 - dist1;
+    else edge = dist3 - dist1;
+    hex = axl2hex(axl);
+  }
+  else if(dist2 < dist3){
+    if(dist3 < dist1) edge = dist3 - dist2;
+    else edge = dist1 - dist2;
+    hex = axl2hex(n23.xy);
+  }
+  else{
+    if(dist2 < dist1) edge = dist2 - dist3;
+    else edge = dist1 - dist3;
+    hex = axl2hex(n23.zw);
+  }
 
-  vec4 nc1 = hex_color(n1,wld);
-  vec4 nc2 = hex_color(n2,wld);
-  vec4 nc3 = hex_color(n3,wld);
-  nc1.a *= 1.0-dist1;
-  nc2.a *= 1.0-dist2;
-  nc3.a *= 1.0-dist3;
+  if(hex.x < 0.0 || hex.y < 0.0 || hex.x >= map_dims.x || hex.y >= map_dims.y)
+    gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+  else{
+    vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
+    int zone = int(255.0*tex.x)-1;
+    float depth = tex.y;
+    int vegetation = int(255.0*tex.z / 8.0)-1;
+    int climate = int(mod(255.0*tex.z,8.0))-1;
 
-  gl_FragColor.rgb = (nc1.rgb * rc1.a + nc2.rgb * rc2.a + nc3.rgb * rc3.a)/
-    (nc1.a + nc2.a + nc3.a);
+    if(zone == 0)
+      gl_FragColor = zoneColor(zone_h_0,zone_s_0,depth)*elshade(edge,wld,zone);
+    else{ // if(vegetation == 0){
+      if(climate == 0) gl_FragColor = climateColor(climate0,edge,wld,zone);
+      else if(climate == 1) gl_FragColor = climateColor(climate1,edge,wld,zone);
+      else if(climate == 2) gl_FragColor = climateColor(climate2,edge,wld,zone);
+      else if(climate == 3) gl_FragColor = climateColor(climate3,edge,wld,zone);
+      else if(climate == 4) gl_FragColor = climateColor(climate4,edge,wld,zone);
+      else if(climate == 5) gl_FragColor = climateColor(climate5,edge,wld,zone);
+      else if(climate == 6) gl_FragColor = climateColor(climate6,edge,wld,zone);
+    }
+  }
+  gl_FragColor.a = 1.0;
 }
