@@ -109,30 +109,26 @@ X * add noisy interior
 
 At this point I can definitely create my Aleron map
 
-* fix bug on edge of large maps
-* fix bug in moisture calculation for large maps
-* use typed arrays now??
+* fix bug on edge of large maps (maybe limit map size?)
 
-* allow navigation in all modes and remove the hand from the toolbar
-* allow x to wrap (mark edge??)
-* set limits on position and zoom based on map size
-* zoom to mouse point (not screen center)
-* allow for modern navigation (use scroll to move around the map, pinch to zoom)
+X * have a clean edge cutoff
+X * allow navigation in all modes and remove the hand from the toolbar
+X * allow x to wrap (mark edge??)
+X * set limits on position and zoom based on map size
+X * zoom to mouse point (not screen center)
+* allow for modern navigation?? (use scroll to move around the map, pinch to zoom)
 
-* improve annotations for
-    - moutains
-    - hills
-    - vegetation
-
-* optimzie switching from one terrain to another (only copy once)
+* optimize switching from one terrain view to another (only copy once)
+* optimize terrain rendering (if possible)
+* use cylendrical texturing to avoid a seam
 
 * add legends to make the map easier to read
-* improve color interpolation (use color brewer) for helper views
 * add black border to hexes in the helper views
+* improve color interpolation (use color brewer) for helper views
 
 * add a spinner during terrain generation?? 
   (this will require breaking up the loops, maybe by
-  having a schedular, or just a web worker, maybe use typed arrays at this point??)
+  having a schedular, or just a web worker)
 
 * display the exact coordinates and scale to allow easy recovery
 * allow exact coordinates and scale to be set
@@ -142,7 +138,7 @@ At this point I can definitely create my Aleron map
 Anything I didn't finish in stage two, I now finalize here.
 
 * scale parameter: allow the scale of continents to be selected
-* optimization: implement terrain generation using typed arrays
+X * optimization: implement terrain generation using typed arrays
 * wind generation to create adjusted moisture and temperature values
 * generate rivers based on moisture concentrations near mountains
 

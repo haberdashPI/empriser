@@ -22,7 +22,6 @@ import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import VegetIcon from 'material-ui/svg-icons/image/nature'
 
 import {ClimateIcon, ZoneIcon, ClimateZoneIcon} from './icons'
-import {ZOOM,READY_MOVE,LOAD_MAP} from '../actions'
 
 import TerrainDialog from './terrain'
 import TerrainZoneDialog from './terrain_zone'
@@ -43,11 +42,6 @@ class MapToolbar extends React.Component{
   }
 
   setActive(active,subactive=""){
-    if(active === "move" && this.state.active !== "move")
-      if(active == "move") this.props.onMoveable(true)
-    else
-      if(active == "move") this.props.onMoveable(false)
-
     this.setState(state => {
       if(state.active == active){
         if(subactive == "")
@@ -102,31 +96,15 @@ class MapToolbar extends React.Component{
     )
   }
 
-  renderMove(){
-    return (
-      <ToolbarGroup>
-        <IconButton onClick={() => this.props.onZoomIn()}>
-          <ZoomInIcon/>
-        </IconButton>
-        <IconButton onClick={() => this.props.onZoomOut()}>
-          <ZoomOutIcon/>
-        </IconButton>
-      </ToolbarGroup>
-    )
-  }
-
   render(){
     let dobj = this.props.map_settings.toJS()
     let ddata = JSON.stringify(dobj);
-    
+
     return (
       <MuiThemeProvider>
         <Paper zDepth={2}>
           <Toolbar>
             <ToolbarGroup firstChild={true}>
-              <IconButton onClick={() => this.setActive("move")}>
-                <MoveIcon color={this.iconColor("move")}/>
-              </IconButton>
               <IconButton onClick={() => this.setActive("view")}>
                 <ViewIcon color={this.iconColor("view")}/>
               </IconButton>
@@ -134,10 +112,9 @@ class MapToolbar extends React.Component{
                 <EditIcon color={this.iconColor("edit")}/>
               </IconButton>
             </ToolbarGroup>
-            
+
             {(this.state.active === "edit" ? this.renderEdit() : null)}
-            {(this.state.active === "move" ? this.renderMove() : null)}
-            
+
             <ToolbarGroup lastChild={true}>
               <IconMenu
                 iconButtonElement={<IconButton><MoreVertIcon/></IconButton>}
@@ -196,15 +173,6 @@ export default connect(state => {
   return {map_settings: state.map.settings}
 },dispatch => {
   return {
-    onZoomIn: () => {
-      dispatch({type: ZOOM, value: Math.sqrt(2)})
-    },
-    onZoomOut: () => {
-      dispatch({type: ZOOM, value: 1/Math.sqrt(2)})
-    },
-    onMoveable: (value) => {
-      dispatch({type: READY_MOVE, value: value})
-    },
     onLoad: (map_settings) => {
       dispatch({type: LOAD_MAP, value: map_settings})
     }

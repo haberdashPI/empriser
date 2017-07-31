@@ -32,8 +32,8 @@ export default function generate_climate(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
 
-  let climate = new Array(width*height)
-  let vegetation = new Array(width*height)
+  let climate = new Int8Array(width*height)
+  let vegetation = new Int8Array(width*height)
   let veg = {
     arid: state.settings.getIn(['climate_zones','percent',0]),
     semiarid: state.settings.getIn(['climate_zones','percent',1]),

@@ -26,13 +26,15 @@
 // world to grid translation.
 //
 
-vec2 img2wld(vec2 img){
-  vec2 view = (img - view_dims/2.0)/view_scale - view_position;
-  return view + map_dims/2.0;
-}
-
 const float r = 0.5; // hex radius
 const float s = 1.0/sqrt(3.0); // hex side length
+
+vec2 img2wld(vec2 img){
+  vec2 view = (img - view_dims/2.0)/view_scale - view_position;
+  view.x += map_dims.x/2.0;
+  view.y += map_dims.y/2.0 * sqrt(3.0/4.0);
+  return view;
+}
 
 vec2 wld2axl(vec2 wld){
   float t1 = wld.y / s;

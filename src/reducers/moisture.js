@@ -4,9 +4,9 @@ import {hex_neighbors} from '../util'
 function find_water_distance(state){
   let width = state.settings.getIn(['terrain','width'])
   let height = state.settings.getIn(['terrain','height'])
-  let water_dists = new Array(state.data.terrain.length)
+  let water_dists = new Float64Array(state.data.terrain.length)
   // searches for distances up to 10% of map or 10 squares whichever is greater
-  let num_passes = 6 //Math.max(10,Math.ceil(0.1*Math.max(height,width)))
+  let num_passes = Math.max(10,Math.ceil(0.1*Math.max(height,width)))
 
   let terrain_zones = state.data.terrain_zones
 
@@ -18,7 +18,7 @@ function find_water_distance(state){
   }
 
   let type_depths = state.settings.getIn(['terrain_zones','depth']).toJS()
-  let old_water_dists = new Array(width*height)
+  let old_water_dists = new Float64Array(width*height)
   for(let i=0;i<water_dists.length;i++)
     old_water_dists[i] = water_dists[i]
 
@@ -26,7 +26,7 @@ function find_water_distance(state){
   for(let pass=0;pass<num_passes;pass++){
     for(let yi=0;yi<height;yi++){
       for(let xi=0;xi<width;xi++){
-        let dists = Array(6)
+        let dists = new Float64Array(6)
         let ndist = 0
         let neighbors = hex_neighbors(xi,yi)
 
@@ -46,7 +46,7 @@ function find_water_distance(state){
         }
 
         if(ndist > 0){
-          let ws = Array(ndist)
+          let ws = new Float64Array(ndist)
           let wsum = 0
           for(let n=0;n<ndist;n++)
             wsum += ws[n] = Math.exp(-dists[n]/2)
@@ -57,7 +57,7 @@ function find_water_distance(state){
         }else{
           water_dists[yi*width+xi] = old_water_dists[yi*width+xi]
         }
-        
+
 
         if(isFinite(water_dists[yi*width+xi]) &&
            water_dists[yi*width+xi] > max_dist)
@@ -96,7 +96,7 @@ export default function generate_moisture(state){
   )
 
   let water_dists = find_water_distance(state)
-  let moists = new Array(state.data.terrain.length)
+  let moists = new Float64Array(state.data.terrain.length)
   let strength = state.settings.getIn(['moist','strength'])
 
   for(let yi=0;yi<height;yi++){
@@ -104,7 +104,7 @@ export default function generate_moisture(state){
       let noise = noises[yi*width+xi]
       let water_dist = water_dists[yi*width+xi]
       let moist = (1-noise_level)*(1-water_dist) + noise*noise_level
-      
+
       moists[yi*width+xi] = (moist - 0.5)*strength + 0.5
     }
   }

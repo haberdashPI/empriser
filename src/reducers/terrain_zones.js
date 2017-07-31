@@ -1,8 +1,8 @@
 import {map_noise, flattenHist, cumsum} from './util'
 
 export default function generate_terrain_zones(state){
-  let depths = new Array(state.data.terrain.length)
-  let types = new Array(state.data.terrain.length)
+  let depths = new Float64Array(state.data.terrain.length)
+  let types = new Int8Array(state.data.terrain.length)
 
   let borders = cumsum(state.settings.getIn(['terrain_zones','percent']).toJS())
   let flattened = flattenHist(state.data.terrain)

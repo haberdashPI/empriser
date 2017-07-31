@@ -19,7 +19,7 @@ export default function generate_temperature(state){
   let type_depths = state.settings.getIn(['terrain_zones','depth']).toJS()
   let strength = state.settings.getIn(['temp','strength'])
 
-  let temps = new Array(width*height)
+  let temps = new Float64Array(width*height)
 
   for(let yi=0;yi<height;yi++){
     for(let xi=0;xi<width;xi++){
@@ -36,7 +36,7 @@ export default function generate_temperature(state){
       let warmness = 1-(zone_dist+1.3*equator_dist)/max_dist
       let moderator = (1-moist*0.5)
       warmness = (warmness - 0.5)*strength*moderator + 0.5
-      
+
       temps[yi*width+xi] = warmness*(1-noise_level) + noise_level*noise
     }
   }

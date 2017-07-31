@@ -3,12 +3,14 @@ import $ from 'jquery'
 import * as PIXI from 'pixi.js'
 import _ from 'underscore'
 
-import {MOVE, ZOOM} from '../actions'
+import {MOVE, ZOOM, VIEW_UPDATE} from '../actions'
 
 import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
         COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
         FORREST,  JUNGLE,  EVERGREEN,  BUSH,
         WETLAND, CLIMATE_BITS, VEG_BITS} from '../reducers/climate'
+
+import {map_scale} from '../reducers/map'
 
 import {hexX, hexY} from '../util'
 
@@ -88,30 +90,36 @@ export default class MapView{
     store.subscribe(() => this.update())
     $(window).resize(() => {
       this.renderer.resize(window.innerWidth, window.innerHeight);
-      this.update()
+      this.store.dispatch({
+        type: VIEW_UPDATE,
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
     })
 
-    $(document).ready(() => this.update())
+    $(document).ready(() => {
+      this.store.dispatch({
+        type: VIEW_UPDATE,
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    })
 
     this.lastDrag = undefined
+    this.lastPos = undefined
     this.renderer.view.addEventListener("mousemove",
                                         event => this.handleMove(event),false);
     this.renderer.view.addEventListener("mousewheel",
                                         event => this.handleZoom(event),false);
   }
 
-  view_ratio(){
-    let width = this.settings.getIn(['terrain','width'])
-    let height = this.settings.getIn(['terrain','height'])
-    let max_view_dim = Math.max(window.innerWidth,window.innerHeight)
-    let max_map_dim = Math.max(width,height)
-
-    return max_view_dim / max_map_dim
-  }
-
   handleMove(event){
-    if(!this.settings || !this.settings.getIn(['view','draggable']) ||
-       !(event.buttons & LEFT)){
+    this.lastPos = [event.clientX,event.clientY]
+    if(!this.settings || !(event.buttons & LEFT)){
+      this.renderer.view.style.cursor = "-webkit-grab"
+      this.renderer.view.style.cursor = "-moz-grab"
+      this.renderer.view.style.cursor = "grab"
+
       this.lastDrag = undefined
       return
     }
@@ -129,20 +137,20 @@ export default class MapView{
 
       this.store.dispatch({
         type: MOVE,
-        x: diffX / this.view_ratio(),
-        y: diffY / this.view_ratio()
+        x: diffX,
+        y: diffY,
       })
     }
   }
 
   handleZoom(event){
-    if(!this.settings || !this.settings.getIn(['view','draggable']))
-      return
+    if(!this.settings) return
 
     event.preventDefault()
     this.store.dispatch({
       type: ZOOM,
-      value: Math.pow(2,-ZOOM_SCALE*event.deltaY)
+      value: Math.pow(2,-ZOOM_SCALE*event.deltaY),
+      point: this.lastPos || [window.innerWidth/2,window.innerHeight/2]
     })
   }
 
@@ -154,15 +162,6 @@ export default class MapView{
     let old_settings = this.settings
     this.settings = this.store.getState().map.settings
     this.data = this.store.getState().map.data
-
-    // adjust cursor
-    if(this.settings.getIn(['view','draggable'])){
-      this.renderer.view.style.cursor = "-webkit-grab"
-      this.renderer.view.style.cursor = "-moz-grab"
-      this.renderer.view.style.cursor = "grab"
-    }else{
-      this.renderer.view.style.cursor = "default"
-    }
 
     // update map view
     let height = this.settings.getIn(["terrain","height"])
@@ -265,7 +264,7 @@ export default class MapView{
     }
 
     this.image.filters[0].uniforms.view_scale =
-      this.settings.getIn(['view','scale']) * this.view_ratio()
+      map_scale(this.store.getState().map,window)
     this.image.filters[0].uniforms.view_dims =
       [window.innerWidth,window.innerHeight]
     this.image.filters[0].uniforms.view_position = [

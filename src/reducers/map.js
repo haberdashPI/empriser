@@ -1,7 +1,7 @@
 import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
-        MOVE, LOAD_MAP} from '../actions'
+        MOVE, LOAD_MAP, VIEW_UPDATE} from '../actions'
 import {randomStr,clamp,DEFAULT_COLORBY} from '../util'
 
 import generate_terrain from './terrain'
@@ -45,7 +45,7 @@ const initial_state = {
     colorby: DEFAULT_COLORBY,
     view: {scale: 1, x: 0, y: 0, draggable: false}
   }),
-
+  view: {width: Infinity, height: Infinity},
   data: {},
 }
 
@@ -57,22 +57,61 @@ function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
   else return resolve_settings(chain.first()(state),undefined,chain.shift())
 }
 
-export default function map(state = resolve_settings(initial_state), action){
-  let width
-  let height
-  let maxZoom
-  switch(action.type){
-    case TERRAIN_UPDATE:
-      width = action.value.get('width')
-      height = action.value.get('height')
-      maxZoom = Math.max(width,height)
+function wrap(x,min,max){
+  if(min === max === 0) return 0;
+  let bounded = (x - min) % (max - min)
+  if(bounded < 0) bounded += (max - min)
+  return bounded + min
+}
 
+function constrain_view(state,settings){
+  let width = settings.getIn(['terrain','width'])
+  let height = settings.getIn(['terrain','height'])*Math.sqrt(3/4)
+  let maxZoom = Math.max(width,height)
+  let middle_to_edge = state.view.height/map_scale(state)/2.0
+  let maxY = Math.max(0,height/2 - middle_to_edge)
+  let minY = Math.min(0,-height/2 + middle_to_edge)
+
+  return settings.updateIn(['view','x'],x => wrap(x,-width/2.0,width/2.0)).
+                  updateIn(['view','y'],y => clamp(y,minY,maxY)).
+                  updateIn(['view','scale'],s => clamp(s,1,maxZoom))
+}
+
+export function map_scale(state,window){
+  return view_ratio(state,state.settings,window)*state.settings.getIn(['view','scale'])
+}
+
+function view_ratio(state,settings,window){
+  let v_width
+  let v_height
+  if(window === undefined){
+    v_width = state.view.width
+    v_height = state.view.height
+  }else{
+    v_width = window.innerWidth
+    v_height = window.innerHeight
+  }
+
+  let width = settings.getIn(['terrain','width'])
+  let height = settings.getIn(['terrain','height'])
+  let max_view_dim = Math.max(v_width,v_height)
+  let max_map_dim = Math.max(width,height*Math.sqrt(3/4));
+
+  return max_view_dim / max_map_dim
+}
+
+export default function map(state = resolve_settings(initial_state), action){
+  let scale
+  switch(action.type){
+    case VIEW_UPDATE:
+      return {
+        ...state,
+        view: {width: action.width, height: action.height}
+      }
+    case TERRAIN_UPDATE:
       return resolve_settings(state,s => {
-        return s.set('terrain',action.value).
-                 set('colorby',action.colorby).
-                 updateIn(['view','x'],x => clamp(x,-width/2,width/2)).
-                 updateIn(['view','y'],y => clamp(y,-height/2,height/2)).
-                 updateIn(['view','scale'],s => clamp(s,1,maxZoom))
+        return constrain_view(state,s.set('terrain',action.value).
+                                      set('colorby',action.colorby))
       })
     case TERRAIN_ZONE_UPDATE:
       return resolve_settings(state,s => s.set('terrain_zones',action.value).
@@ -87,30 +126,32 @@ export default function map(state = resolve_settings(initial_state), action){
     case COLORBY_UPDATE:
       return resolve_settings(state,s => s.set('colorby',action.value))
     case ZOOM:
-      width = state.settings.getIn(['terrain','width'])
-      height = state.settings.getIn(['terrain','height'])
-      maxZoom = Math.max(width,height)
+      // TODO: calcualte actual amount of scaling, and then move
+      // based on that, so we don't scroll when we reach the zoom limit
+      let before = state.settings
+      let after = constrain_view(state,state.settings.
+                                             updateIn(['view','scale'],
+                                                      s => s * action.value))
+      scale = before.getIn(['view','scale']) / after.getIn(['view','scale'])
+      let x_offset = -(action.point[0] - state.view.width/2.0)*
+        (1-scale)/map_scale(state,window)
+      let y_offset = -(action.point[1] - state.view.height/2.0)*
+        (1-scale)/map_scale(state,window)
+
       return {
         ...state,
-        settings: state.settings.
-                        updateIn(['view','scale'],
-                                 s => clamp(s * action.value,1,maxZoom))
-      }
-    case READY_MOVE:
-      return {
-        ...state,
-        settings: state.settings.setIn(['view','draggable'],action.value)
+        settings: constrain_view(state,after.updateIn(['view','x'],x => x + x_offset).
+                                             updateIn(['view','y'],y => y + y_offset))
       }
     case MOVE:
-      let scale = state.settings.getIn(['view','scale'])
-      width = state.settings.getIn(['terrain','width'])
-      height = state.settings.getIn(['terrain','height'])
+      scale = state.settings.getIn(['view','scale'])
       let settings =
-        state.settings.
-              updateIn(['view','x'],
-                       x => clamp(x + action.x / scale,-width/2,width/2)).
-              updateIn(['view','y'],
-                       y => clamp(y + action.y / scale,-height/2,height/2))
+        constrain_view(state,
+                       state.settings.
+                             updateIn(['view','x'],x => x + action.x / scale /
+                               view_ratio(state,state.settings)).
+                             updateIn(['view','y'],y => y + action.y / scale /
+                               view_ratio(state,state.settings)))
 
       return {...state, settings: settings}
     case LOAD_MAP:

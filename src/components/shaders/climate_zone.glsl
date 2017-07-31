@@ -19,7 +19,7 @@ uniform vec4 filterArea;
 #pragma glslify: import('./noise.glsl')
 
 const vec3 climate0 = vec3(240.0/255.0,220.0/255.0,192.0/255.0);
-const vec3 climate1 = vec3(148.0/255.0,137.0/255.0,105.0/255.0);
+const vec3 climate1 = vec3(168.0/255.0,137.0/255.0,105.0/255.0);
 const vec3 climate2 = vec3(058.0/255.0,107.0/255.0,045.0/255.0);
 const vec3 climate3 = vec3(054.0/255.0,096.0/255.0,042.0/255.0);
 const vec3 climate4 = vec3(053.0/255.0,082.0/255.0,040.0/255.0);
@@ -68,8 +68,8 @@ float elshade(float edge,vec2 wld,int zone){
 
 float patchy(vec2 wld){
   float result = 0.75;
-  result += 0.12*step(-0.5,fbm(wld,1.0,0.6));
-  result += 0.12*step(-0.5,fbm(-wld,1.0,0.6));
+  result += 0.12*step(-0.1,fbm(10.0*wld,0.6,0.6) + fbm(1.0*wld,0.4,0.1));
+  result += 0.12*step(-0.1,fbm(-10.0*wld,0.6,0.6) + fbm(-1.0*wld,0.4,0.1));
   return result;
 }
 
@@ -92,37 +92,46 @@ float noisy_dist(vec2 a,vec2 b){
 
 void main(void){
   vec2 wld = img2wld(tex2img(vTextureCoord.xy,filterArea));
+  wld.x = mod(wld.x,map_dims.x);
+  if(wld.x < 0.0) wld.x += map_dims.x;
+
   vec2 axl = wld2axl(wld);
 
-  vec4 n23 = closest_neighbors(axl,wld);
-  vec2 np1 = axl2wld(axl);
-  vec2 np2 = axl2wld(n23.xy);
-  vec2 np3 = axl2wld(n23.zw);
-
-  float dist1 = noisy_dist(wld,np1);
-  float dist2 = noisy_dist(wld,np2);
-  float dist3 = noisy_dist(wld,np3);
-  float edge;
-  vec2 hex;
-  if(dist1 < dist2 && dist1 < dist3){
-    if(dist2 < dist3) edge = dist2 - dist1;
-    else edge = dist3 - dist1;
-    hex = axl2hex(axl);
-  }
-  else if(dist2 < dist3){
-    if(dist3 < dist1) edge = dist3 - dist2;
-    else edge = dist1 - dist2;
-    hex = axl2hex(n23.xy);
-  }
-  else{
-    if(dist2 < dist1) edge = dist2 - dist3;
-    else edge = dist1 - dist3;
-    hex = axl2hex(n23.zw);
-  }
-
-  if(hex.x < 0.0 || hex.y < 0.0 || hex.x >= map_dims.x || hex.y >= map_dims.y)
+  // note axl2hex is the same as hex2axl
+  if(any(lessThan(wld,vec2(0.0,0.0))) ||
+     wld.x > map_dims.x || wld.y > map_dims.y * 0.5/s)
     gl_FragColor = vec4(1.0,1.0,1.0,1.0);
   else{
+    vec4 n23 = closest_neighbors(axl,wld);
+    vec2 np1 = axl2wld(axl);
+    vec2 np2 = axl2wld(n23.xy);
+    vec2 np3 = axl2wld(n23.zw);
+
+    float dist1 = noisy_dist(wld,np1);
+    float dist2 = noisy_dist(wld,np2);
+    float dist3 = noisy_dist(wld,np3);
+    float edge;
+    vec2 hex;
+    if(dist1 < dist2 && dist1 < dist3){
+      if(dist2 < dist3) edge = dist2 - dist1;
+      else edge = dist3 - dist1;
+      hex = axl2hex(axl);
+    }
+    else if(dist2 < dist3){
+      if(dist3 < dist1) edge = dist3 - dist2;
+      else edge = dist1 - dist2;
+      hex = axl2hex(n23.xy);
+    }
+    else{
+      if(dist2 < dist1) edge = dist2 - dist3;
+      else edge = dist1 - dist3;
+      hex = axl2hex(n23.zw);
+    }
+
+    hex.x = mod(hex.x,map_dims.x);
+    if(hex.x < 0.0) hex.x += map_dims.x;
+    hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
+
     vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
     int zone = int(255.0*tex.x)-1;
     float depth = tex.y;
@@ -141,5 +150,4 @@ void main(void){
       else if(climate == 6) gl_FragColor = climateColor(climate6,edge,wld,zone);
     }
   }
-  gl_FragColor.a = 1.0;
 }

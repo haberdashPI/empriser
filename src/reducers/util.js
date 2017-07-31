@@ -6,7 +6,7 @@ import {hexX,hexY} from '../util'
 import _ from 'underscore'
 
 export function map_noise(width,height,smoothness,seed_start){
-  let result = new Array(height*width)
+  let result = new Float64Array(height*width)
 
   let H = Math.log((1-smoothness)*5+1) / Math.log(6)
   let seed = parseInt(sha1(seed_start).slice(8))
@@ -53,7 +53,7 @@ export function map_noise(width,height,smoothness,seed_start){
 }
 
 export function cumsum(xs){
-  let ys = new Array(xs.length+1)
+  let ys = new Float64Array(xs.length+1)
   ys[0] = 0
   for(let i=0;i<xs.length;i++){
     ys[i+1] = xs[i] + ys[i]
@@ -63,7 +63,7 @@ export function cumsum(xs){
 
 export function flattenHist(xs,N=1000){
   // histogram
-  let bins = new Array(N)
+  let bins = new Float64Array(N)
   let min = _.reduce(xs,(x,y) => x < y ? x : y)
   let max = _.reduce(xs,(x,y) => x > y ? x : y)
   for(let i=0;i<N;i++) bins[i] = 0
@@ -71,7 +71,7 @@ export function flattenHist(xs,N=1000){
     bins[Math.round((N-1)*((xs[i]-min)/(max-min)))] += 1
 
   // flatten origianl values
-  let ys = new Array(xs.length)
+  let ys = new Float64Array(xs.length)
   let cumbins = cumsum(bins)
   for(let i=0;i<xs.length;i++){
     let rbin = (N-1)*((xs[i]-min)/(max-min))
