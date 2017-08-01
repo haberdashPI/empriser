@@ -1,7 +1,7 @@
 import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
-        MOVE, LOAD_MAP, VIEW_UPDATE} from '../actions'
+        MOVE, LOAD_MAP, VIEW_UPDATE, NAVIGATE_UPDATE} from '../actions'
 import {randomStr,clamp,DEFAULT_COLORBY} from '../util'
 
 import generate_terrain from './terrain'
@@ -43,7 +43,7 @@ const initial_state = {
       }
     },
     colorby: DEFAULT_COLORBY,
-    view: {scale: 1, x: 0, y: 0, draggable: false}
+    view: {scale: 1, x: 0, y: 0, modern_navigation: true}
   }),
   view: {width: Infinity, height: Infinity},
   data: {},
@@ -107,6 +107,11 @@ export default function map(state = resolve_settings(initial_state), action){
       return {
         ...state,
         view: {width: action.width, height: action.height}
+      }
+    case NAVIGATE_UPDATE:
+      return {
+        ...state,
+        settings: state.settings.setIn(['view','modern_navigation'],action.value)
       }
     case TERRAIN_UPDATE:
       return resolve_settings(state,s => {

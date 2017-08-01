@@ -23,6 +23,14 @@ const MOISTURE = 2;
 const TEMPERATURE = 3;
 const CLIMATE_ZONE = 4;
 
+const kind_to_index = {
+  'terrain': TERRAIN,
+  'terrain_zones': TERRAIN_ZONE,
+  'temp': TEMPERATURE,
+  'moist': MOISTURE,
+  'climate_zones': CLIMATE_ZONE
+}
+
 const most_temp = [168/255,0,0]
 const least_temp = [14/255,0,143/255]
 
@@ -56,6 +64,7 @@ function asTexture(width,height,encoder){
 export default class MapView{
   constructor(view,store){
     this.store = store
+    this.cache = {}
     this.renderer = new PIXI.WebGLRenderer(256,256)
     this.stage = new PIXI.Container()
 
@@ -115,6 +124,10 @@ export default class MapView{
 
   handleMove(event){
     this.lastPos = [event.clientX,event.clientY]
+
+    if(this.settings && this.settings.getIn(['view','modern_navigation']))
+      return
+
     if(!this.settings || !(event.buttons & LEFT)){
       this.renderer.view.style.cursor = "-webkit-grab"
       this.renderer.view.style.cursor = "-moz-grab"
@@ -145,13 +158,41 @@ export default class MapView{
 
   handleZoom(event){
     if(!this.settings) return
-
     event.preventDefault()
-    this.store.dispatch({
-      type: ZOOM,
-      value: Math.pow(2,-ZOOM_SCALE*event.deltaY),
-      point: this.lastPos || [window.innerWidth/2,window.innerHeight/2]
-    })
+
+    if(this.settings.getIn(['view','modern_navigation'])){
+      if(event.ctrlKey){
+        this.store.dispatch({
+          type: ZOOM,
+          value: Math.pow(2,-ZOOM_SCALE*event.deltaY),
+          point: this.lastPos || [window.innerWidth/2,window.innerHeight/2]
+        })
+      }else{
+        this.store.dispatch({
+          type: MOVE,
+          x: -event.deltaX,
+          y: -event.deltaY
+        })
+      }
+    }else{
+      this.store.dispatch({
+        type: ZOOM,
+        value: Math.pow(2,-ZOOM_SCALE*event.deltaY),
+        point: this.lastPos || [window.innerWidth/2,window.innerHeight/2]
+      })
+    }
+  }
+
+  setup_filter(data,filter_index){
+    let image = new PIXI.Sprite(data)
+    image.filters = [this.filters[filter_index]]
+    return image
+  }
+
+  use_filter(filter){
+    if(this.image) this.stage.removeChild(this.image)
+    this.image = filter
+    this.stage.addChild(this.image)
   }
 
   update(){
@@ -168,8 +209,7 @@ export default class MapView{
     let width = this.settings.getIn(["terrain","width"])
 
     let is_changed_to = (kind) => {
-      return this.settings.get('colorby') === kind &&
-             !(old_settings &&
+      return !(old_settings &&
                is(this.settings.get('colorby'),old_settings.get('colorby')) &&
                is(this.settings.get(kind),old_settings.get(kind)) &&
                is(this.settings.get('terrain','width'),
@@ -180,87 +220,18 @@ export default class MapView{
                this.old_height === window.innerHeight)
     }
 
-    let use_filter = (data,filter_index) => {
-      if(this.image) this.stage.removeChild(this.image)
-      this.image = new PIXI.Sprite(data)
-      this.stage.addChild(this.image)
-      this.image.filters = [this.filters[filter_index]]
-    }
-
-    if(is_changed_to('terrain')){
-      let terrain = asTexture(width,height,(data,real_width) => {
-        for(let yi=0;yi<height;yi++){
-          for(let xi=0;xi<width;xi++){
-            data[4*(yi*real_width + xi) + 0] =
-              Math.floor(255*this.data.terrain[yi*width+xi])
-            data[4*(yi*real_width + xi) + 1] = 0
-            data[4*(yi*real_width + xi) + 2] = 0
-            data[4*(yi*real_width + xi) + 3] = 255
-          }
+    if(!old_settings || this.settings.get('colorby') !== old_settings.get('colorby')){
+      let kind = this.settings.get('colorby')
+      let cache = this.cache[kind]
+      if(cache) this.use_filter(cache,kind_to_index[kind])
+      else this.update_filter(kind)
+    }else{
+      for(let k of ['terrain','terrain_zones','moist','temp','climate_zones']){
+        if(is_changed_to(k)){
+          this.cache = {}
+          this.update_filter(k)
         }
-      })
-
-      use_filter(terrain,TERRAIN)
-    }else if(is_changed_to('terrain_zones')){
-      let terrain_zones = asTexture(width,height,(data,real_width) => {
-        for(let yi=0;yi<height;yi++){
-          for(let xi=0;xi<width;xi++){
-            data[4*(yi*real_width + xi) + 0] =
-              this.data.terrain_zones.types[yi*width+xi] + 1
-            data[4*(yi*real_width + xi) + 1] =
-              Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
-            data[4*(yi*real_width + xi) + 2] = 0
-            data[4*(yi*real_width + xi) + 3] = 255
-          }
-        }
-      })
-
-      use_filter(terrain_zones,TERRAIN_ZONE)
-    }if(is_changed_to('moist')){
-      let terrain = asTexture(width,height,(data,real_width) => {
-        for(let yi=0;yi<height;yi++){
-          for(let xi=0;xi<width;xi++){
-            data[4*(yi*real_width + xi) + 0] =
-              Math.floor(255*this.data.moist[yi*width+xi])
-            data[4*(yi*real_width + xi) + 1] = 0
-            data[4*(yi*real_width + xi) + 2] = 0
-            data[4*(yi*real_width + xi) + 3] = 255
-          }
-        }
-      })
-
-      use_filter(terrain,MOISTURE)
-    }if(is_changed_to('temp')){
-      let terrain = asTexture(width,height,(data,real_width) => {
-        for(let yi=0;yi<height;yi++){
-          for(let xi=0;xi<width;xi++){
-            data[4*(yi*real_width + xi) + 0] =
-              Math.floor(255*this.data.temp[yi*width+xi])
-            data[4*(yi*real_width + xi) + 1] = 0
-            data[4*(yi*real_width + xi) + 2] = 0
-            data[4*(yi*real_width + xi) + 3] = 255
-          }
-        }
-      })
-
-      use_filter(terrain,TEMPERATURE)
-    }else if(is_changed_to('climate_zones')){
-      let climate_zones = asTexture(width,height,(data,real_width) => {
-        for(let yi=0;yi<height;yi++){
-          for(let xi=0;xi<width;xi++){
-            data[4*(yi*real_width + xi) + 0] =
-              this.data.terrain_zones.types[yi*width+xi] + 1
-            data[4*(yi*real_width + xi) + 1] =
-              Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
-            data[4*(yi*real_width + xi) + 2] =
-              (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
-              (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
-            data[4*(yi*real_width + xi) + 3] = 255
-          }
-        }
-      })
-
-      use_filter(climate_zones,CLIMATE_ZONE)
+      }
     }
 
     this.image.filters[0].uniforms.view_scale =
@@ -277,5 +248,93 @@ export default class MapView{
     this.old_height = window.innerHeight
 
     this.renderer.render(this.stage)
+  }
+
+  update_filter(kind){
+    let height = this.settings.getIn(["terrain","height"])
+    let width = this.settings.getIn(["terrain","width"])
+
+    if(kind === 'terrain'){
+      let terrain = asTexture(width,height,(data,real_width) => {
+        for(let yi=0;yi<height;yi++){
+          for(let xi=0;xi<width;xi++){
+            data[4*(yi*real_width + xi) + 0] =
+              Math.floor(255*this.data.terrain[yi*width+xi])
+            data[4*(yi*real_width + xi) + 1] = 0
+            data[4*(yi*real_width + xi) + 2] = 0
+            data[4*(yi*real_width + xi) + 3] = 255
+          }
+        }
+      })
+      this.cache['terrain'] = this.setup_filter(terrain,TERRAIN)
+
+      this.use_filter(this.cache['terrain'])
+    }else if(kind === 'terrain_zones'){
+      let terrain_zones = asTexture(width,height,(data,real_width) => {
+        for(let yi=0;yi<height;yi++){
+          for(let xi=0;xi<width;xi++){
+            data[4*(yi*real_width + xi) + 0] =
+              this.data.terrain_zones.types[yi*width+xi] + 1
+            data[4*(yi*real_width + xi) + 1] =
+              Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
+            data[4*(yi*real_width + xi) + 2] = 0
+            data[4*(yi*real_width + xi) + 3] = 255
+          }
+        }
+      })
+      this.cache['terrain_zones'] =
+        this.setup_filter(terrain_zones,TERRAIN_ZONE)
+
+      this.use_filter(this.cache['terrain_zones'])
+    }if(kind === 'moist'){
+      let moist = asTexture(width,height,(data,real_width) => {
+        for(let yi=0;yi<height;yi++){
+          for(let xi=0;xi<width;xi++){
+            data[4*(yi*real_width + xi) + 0] =
+              Math.floor(255*this.data.moist[yi*width+xi])
+            data[4*(yi*real_width + xi) + 1] = 0
+            data[4*(yi*real_width + xi) + 2] = 0
+            data[4*(yi*real_width + xi) + 3] = 255
+          }
+        }
+      })
+      this.cache['moist'] = this.setup_filter(moist,MOISTURE)
+
+      this.use_filter(this.cache['moist'])
+    }if(kind === 'temp'){
+      let temp = asTexture(width,height,(data,real_width) => {
+        for(let yi=0;yi<height;yi++){
+          for(let xi=0;xi<width;xi++){
+            data[4*(yi*real_width + xi) + 0] =
+              Math.floor(255*this.data.temp[yi*width+xi])
+            data[4*(yi*real_width + xi) + 1] = 0
+            data[4*(yi*real_width + xi) + 2] = 0
+            data[4*(yi*real_width + xi) + 3] = 255
+          }
+        }
+      })
+      this.cache['temp'] = this.setup_filter(temp,TEMPERATURE)
+
+      this.use_filter(this.cache['temp'])
+    }else if(kind === 'climate_zones'){
+      let climate_zones = asTexture(width,height,(data,real_width) => {
+        for(let yi=0;yi<height;yi++){
+          for(let xi=0;xi<width;xi++){
+            data[4*(yi*real_width + xi) + 0] =
+              this.data.terrain_zones.types[yi*width+xi] + 1
+            data[4*(yi*real_width + xi) + 1] =
+              Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
+            data[4*(yi*real_width + xi) + 2] =
+              (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
+              (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
+            data[4*(yi*real_width + xi) + 3] = 255
+          }
+        }
+      })
+      this.cache['climate_zones'] =
+        this.setup_filter(climate_zones,CLIMATE_ZONE)
+
+      this.use_filter(this.cache['climate_zones'])
+    }
   }
 }

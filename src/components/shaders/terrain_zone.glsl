@@ -18,10 +18,18 @@ uniform vec4 filterArea;
 #pragma glslify: import('./color/terrain_zones.glsl')
 
 void main(void){
-  vec2 hex = img2hex(tex2img(vTextureCoord.xy,filterArea));
-  if(hex.x < 0.0 || hex.y < 0.0 || hex.x >= map_dims.x || hex.y >= map_dims.y){
+  vec2 wld = img2wld(tex2img(vTextureCoord.xy,filterArea));
+  wld.x = mod(wld.x,map_dims.x);
+  if(wld.x < 0.0) wld.x += map_dims.x;
+
+  if(wld.y < 0.0 || wld.y > map_dims.y * 0.5/s){
     gl_FragColor = vec4(1.0,1.0,1.0,1.0);
   }else{
+    vec2 hex = axl2hex(wld2axl(wld));
+    hex.x = mod(hex.x,map_dims.x);
+    if(hex.x < 0.0) hex.x += map_dims.x;
+    hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
+
     vec2 tex  = texture2D(uSampler,hex2dat(hex,filterArea)).xy;
     int zone = int(255.0*tex.x)-1;
     float depth = tex.y;

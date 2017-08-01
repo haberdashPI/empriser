@@ -116,14 +116,18 @@ X * allow navigation in all modes and remove the hand from the toolbar
 X * allow x to wrap (mark edge??)
 X * set limits on position and zoom based on map size
 X * zoom to mouse point (not screen center)
-* allow for modern navigation?? (use scroll to move around the map, pinch to zoom)
+X * allow for modern navigation?? (use scroll to move around the map, pinch to
+zoom)
+X * fix visualization on terrain views.
 
-* optimize switching from one terrain view to another (only copy once)
+X * optimize switching from one terrain view to another (only copy once)
+X * use periodic texturing to avoid a seam
 * optimize terrain rendering (if possible)
-* use cylendrical texturing to avoid a seam
+* adding variable coloring to improve texutring
+* add warp to give in impression of globe?? (should be optional)
 
-* add legends to make the map easier to read
 * add black border to hexes in the helper views
+* add legends to make the map easier to read
 * improve color interpolation (use color brewer) for helper views
 
 * add a spinner during terrain generation?? 
@@ -138,6 +142,7 @@ X * zoom to mouse point (not screen center)
 Anything I didn't finish in stage two, I now finalize here.
 
 * scale parameter: allow the scale of continents to be selected
+* allow moisture to wrap around x axis
 X * optimization: implement terrain generation using typed arrays
 * wind generation to create adjusted moisture and temperature values
 * generate rivers based on moisture concentrations near mountains

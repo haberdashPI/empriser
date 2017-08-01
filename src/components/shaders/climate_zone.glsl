@@ -28,10 +28,10 @@ const vec3 climate6 = vec3(252.0/255.0,252.0/255.0,255.0/255.0);
 
 const vec3 elevation = vec3(120.0/255.0,120.0/255.0,087.0/255.0);
 
-float fbm(vec2 p,float c,float H){
+float fbm(float s,vec2 p,float c,float H){
   float sum = 0.0;
   for(int i=0;i<5;i++){
-    sum += c * cnoise(p);
+    sum += c * pnoise(s*p,s*map_dims);
     c *= H;
     p *= 2.0;
   }
@@ -40,10 +40,10 @@ float fbm(vec2 p,float c,float H){
 }
 
 float elnoise(vec2 wld,int zone){
-  if(zone == 0) return fbm(3.0 * wld,0.4,0.75);
-  if(zone == 1) return fbm(0.3 * wld,0.1,0.4); //fbm(1.0 * wld,0.3,0.35);
-  else if(zone == 2) return fbm(0.4 * wld,0.1,0.4);
-  else if(zone == 3) return fbm(0.2 * wld,0.3,0.75);
+  if(zone == 0) return fbm(3.0,wld,0.4,0.75);
+  if(zone == 1) return fbm(0.3, wld,0.1,0.4); //fbm(1.0, wld,0.3,0.35);
+  else if(zone == 2) return fbm(0.4, wld,0.1,0.4);
+  else if(zone == 3) return fbm(0.2, wld,0.3,0.75);
 }
 
 float edgeify(float edge,float x,float amt){
@@ -68,8 +68,8 @@ float elshade(float edge,vec2 wld,int zone){
 
 float patchy(vec2 wld){
   float result = 0.75;
-  result += 0.12*step(-0.1,fbm(10.0*wld,0.6,0.6) + fbm(1.0*wld,0.4,0.1));
-  result += 0.12*step(-0.1,fbm(-10.0*wld,0.6,0.6) + fbm(-1.0*wld,0.4,0.1));
+  result += 0.12*step(-0.1,fbm(10.0,wld,0.6,0.6) + fbm(1.0,wld,0.4,0.1));
+  result += 0.12*step(-0.1,fbm(-10.0,wld,0.6,0.6) + fbm(-1.0,wld,0.4,0.1));
   return result;
 }
 
@@ -87,7 +87,7 @@ vec4 climateColor(vec3 color,float edge,vec2 wld,int zone){
 
 float noisy_dist(vec2 a,vec2 b){
   vec2 diff = b-a;
-  return length(diff) + fbm(1.5*(normalize(diff) + a),3.0*0.13,0.7) + 3.0*0.13;
+  return length(diff) + fbm(1.5,(normalize(diff) + a),3.0*0.13,0.7) + 3.0*0.13;
 }
 
 void main(void){
