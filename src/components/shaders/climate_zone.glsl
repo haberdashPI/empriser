@@ -126,6 +126,10 @@ void main(void){
     if(hex.x < 0.0) hex.x += map_dims.x;
     hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
 
+    // POSSIBLE PLAN: fit zone, veg, and climate all in one bit
+    // fit elevation neighborhood in next bit
+    // fit climate neighboord in third bit
+
     vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
     int zone = int(255.0*tex.x)-1;
     float depth = tex.y;

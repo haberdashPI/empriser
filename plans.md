@@ -126,15 +126,17 @@ X * add black border to hexes in the helper views
   (this will require breaking up the loops, maybe by
   having a schedular, or just a web worker)
 
-* display the exact coordinates and scale to allow easy recovery
-* allow exact coordinates and scale to be set
+* change name of the climate zone view
+
+* EXTRA (after improved world map generation): improve edges to climate
+  zone view.
 
 # Stage 4: improved world map generation
 
 Anything I didn't finish in stage two, I now finalize here.
 
 * scale parameter: allow the scale of continents to be selected
-* allow moisture to wrap around x axis
+X * allow moisture to wrap around x axis
 X * optimization: implement terrain generation using typed arrays
 * wind generation to create adjusted moisture and temperature values
 * generate rivers based on moisture concentrations near mountains
