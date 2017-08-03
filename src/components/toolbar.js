@@ -33,6 +33,8 @@ import ViewDialog from './view'
 import SaveDialog from './save'
 import LoadDialog from './load'
 
+import {LOAD_MAP} from '../actions'
+
 injectTapEventPlugin();
 
 class MapToolbar extends React.Component{

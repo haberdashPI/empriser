@@ -81,10 +81,10 @@ export function map_scale(state,window){
   return view_ratio(state,state.settings,window)*state.settings.getIn(['view','scale'])
 }
 
-function view_ratio(state,settings,window){
+function view_ratio(state,settings){
   let v_width
   let v_height
-  if(window === undefined){
+  if(state.view !== undefined){
     v_width = state.view.width
     v_height = state.view.height
   }else{
@@ -136,9 +136,9 @@ export default function map(state = resolve_settings(initial_state), action){
                                              updateIn(['view','scale'],
                                                       s => s * action.value))
       scale = before.getIn(['view','scale']) / after.getIn(['view','scale'])
-      let x_offset = -(action.point[0] - state.view.width/2.0)*
+      let x_offset = -(action.point[0] - window.innerWidth/2.0)*
         (1-scale)/map_scale(state,window)
-      let y_offset = -(action.point[1] - state.view.height/2.0)*
+      let y_offset = -(action.point[1] - window.innerHeight/2.0)*
         (1-scale)/map_scale(state,window)
 
       return {
@@ -158,7 +158,10 @@ export default function map(state = resolve_settings(initial_state), action){
 
       return {...state, settings: settings}
     case LOAD_MAP:
-      return resolve_settings({settings: fromJS(action.value)})
+      return resolve_settings({
+        settings: fromJS(action.value),
+        view: {width: window.innerWidth, height: window.innerHeight}
+      })
     default:
       return state;
   }
