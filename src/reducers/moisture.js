@@ -28,7 +28,7 @@ function find_water_distance(state){
       for(let xi=0;xi<width;xi++){
         let dists = new Float64Array(6)
         let ndist = 0
-        let neighbors = hex_neighbors(xi,yi)
+        let neighbors = hex_neighbors(xi,yi,[width,height])
 
         for(let n=0;n<6;n++){
           let nxi = neighbors[n][0]

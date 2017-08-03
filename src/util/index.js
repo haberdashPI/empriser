@@ -1,3 +1,5 @@
+import _ from 'underscore'
+
 export function randomStr(N=5){
   return (Math.random().toString(36)+'00000000000000000').slice(2, N+2)
 }
@@ -9,11 +11,21 @@ export function hexY(a,b){
   return b * Math.sqrt(3/4)
 }
 
-export function hex_neighbors(a,b){
+function wraphexs(bounds){
+  return coords => {
+    let wrapped = coords[0] % bounds[0]
+    wrapped = wrapped < 0 ? wrapped + bounds[0] : wrapped
+    return [wrapped,coords[1]]
+  }
+}
+
+export function hex_neighbors(a,b,bounds=[-Infinity,Infinity]){
   if(Math.abs(b % 2) === 0)
-    return [[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+    return _.map([[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]],
+                 wraphexs(bounds))
   else{
-    return [[a-1,b-1],[a,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]]
+    return _.map([[a-1,b-1],[a,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]],
+                 wraphexs(bounds))
   }
 }
 
