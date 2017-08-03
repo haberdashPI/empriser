@@ -92,14 +92,6 @@ X improve zoom interface: I didn't make this better earlier because
 
 X * improve colors for climate zone view
 X * add noisy border to tiles
-  PLAN: interploate between the three closest hex centers 
-  (use floor of acos(normalized dot product) to find closest two neighbors)
-  each center point has some small noisy value subtracted from its distance, of
-  no more than 1/6 (so the total between the three interpolated points is never
-  more than 1/2).
-
-  eventually we can also use a texture to have some colorful transition, rather
-  than a sudden switch.
 
 X * add basic annotations for:
     - moutains
@@ -122,11 +114,11 @@ X * fix visualization on terrain views.
 
 X * optimize switching from one terrain view to another (only copy once)
 X * use periodic texturing to avoid a seam
-* optimize terrain rendering (if possible)
-* adding variable coloring to improve texutring
+X * optimize terrain rendering (if possible)
+X * adding variable coloring to improve texutring
 * add warp to give in impression of globe?? (should be optional)
 
-* add black border to hexes in the helper views
+X * add black border to hexes in the helper views
 * add legends to make the map easier to read
 * improve color interpolation (use color brewer) for helper views
 

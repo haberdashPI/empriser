@@ -93,11 +93,9 @@ function view_ratio(state,settings,window){
   }
 
   let width = settings.getIn(['terrain','width'])
-  let height = settings.getIn(['terrain','height'])
-  let max_view_dim = Math.max(v_width,v_height)
-  let max_map_dim = Math.max(width,height*Math.sqrt(3/4));
+  let height = settings.getIn(['terrain','height'])*Math.sqrt(3/4)
 
-  return max_view_dim / max_map_dim
+  return Math.min(v_width / width,v_height / height)
 }
 
 export default function map(state = resolve_settings(initial_state), action){

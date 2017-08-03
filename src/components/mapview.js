@@ -232,6 +232,10 @@ export default class MapView{
           this.update_filter(k)
         }
       }
+      let kind = this.settings.get('colorby')
+      let cache = this.cache[kind]
+      if(cache) this.use_filter(cache,kind_to_index[kind])
+      else this.update_filter(kind)
     }
 
     this.image.filters[0].uniforms.view_scale =
