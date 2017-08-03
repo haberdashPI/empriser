@@ -8,9 +8,6 @@ const float zone_s_1 = 0.50;
 const float zone_s_2 = 0.41;
 const float zone_s_3 = 0.00;
 
-vec4 zoneColor(float zone_h,float zone_s,float depth){
-  vec4 color;
-  color.rgb = hsv2rgb(vec3(zone_h,zone_s,depth*0.6 + 0.8));
-  color.a = 1.0;
-  return color;
+vec3 zoneColor(float zone_h,float zone_s,float depth){
+  return hsv2rgb(vec3(zone_h,zone_s,depth*0.6 + 0.8));;
 }

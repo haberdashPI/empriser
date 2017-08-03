@@ -66,17 +66,15 @@ float elshade(/*float edge,*/vec2 wld,int zone){
   return atten + el*(1.0-atten);
 }
 
-vec4 climateColor(vec3 color,vec3 color2,/*float edge,*/vec2 wld,int zone){
+vec3 climateColor(vec3 color,vec3 color2,/*float edge,*/vec2 wld,int zone){
   float el = elshade(/*edge,*/wld,zone);
-  vec4 col;
+  vec3 col;
   float p = step(0.45,fbm(6.0,wld,0.6,0.45) + 0.2*pnoise(0.4*wld,0.4*map_dims));
   float p2 = 0.88 + 0.12*step(0.15,fbm(6.0,-wld,0.6,0.45) +
                               0.2*pnoise(-0.4*wld,0.4*map_dims));
 
   col.rgb = mix(color,elevation,0.1*float(zone)*float(zone));//*patchy(wld);
   col.rgb = mix(col.rgb,color2,p)*el*p2;
-
-  col.a = 1.0;
 
   return col;
 }
@@ -135,15 +133,15 @@ void main(void){
     int climate = int(mod(255.0*tex.z,8.0))-1;
 
     if(zone == 0)
-      gl_FragColor = zoneColor(zone_h_0,zone_s_0,depth)*elshade(wld,zone);
+      gl_FragColor.rgb = zoneColor(zone_h_0,zone_s_0,depth)*elshade(wld,zone);
     else{ // if(vegetation == 0){
-      if(climate == 0) gl_FragColor = climateColor(climate0,climate1,wld,zone);
-      else if(climate == 1) gl_FragColor = climateColor(climate1,climate2,wld,zone);
-      else if(climate == 2) gl_FragColor = climateColor(climate2,climate1,wld,zone);
-      else if(climate == 3) gl_FragColor = climateColor(climate3,climate1,wld,zone);
-      else if(climate == 4) gl_FragColor = climateColor(climate4,climate5,wld,zone);
-      else if(climate == 5) gl_FragColor = climateColor(climate5,climate4,wld,zone);
-      else if(climate == 6) gl_FragColor = climateColor(climate6,climate5,wld,zone);
+      if(climate == 0) gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone);
+      else if(climate == 1) gl_FragColor.rgb = climateColor(climate1,climate2,wld,zone);
+      else if(climate == 2) gl_FragColor.rgb = climateColor(climate2,climate1,wld,zone);
+      else if(climate == 3) gl_FragColor.rgb = climateColor(climate3,climate1,wld,zone);
+      else if(climate == 4) gl_FragColor.rgb = climateColor(climate4,climate5,wld,zone);
+      else if(climate == 5) gl_FragColor.rgb = climateColor(climate5,climate4,wld,zone);
+      else if(climate == 6) gl_FragColor.rgb = climateColor(climate6,climate5,wld,zone);
     }
   }
 }
