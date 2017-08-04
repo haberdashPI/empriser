@@ -122,11 +122,11 @@ X * add black border to hexes in the helper views
 X * add legends to make the map easier to read
 X * improve color interpolation (use color brewer) for helper views
 
-* add a spinner during terrain generation??
+X * add a spinner during terrain generation??
   (this will require breaking up the loops, maybe by
   having a schedular, or just a web worker)
 
-* change name of the climate zone view
+X * change name of the climate zone view
 
 * EXTRA (after improved world map generation + rivers): improve edges to climate
   zone view.

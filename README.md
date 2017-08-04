@@ -21,17 +21,13 @@ You can create and explore simple maps.
 * Save and load maps files
 * Save as image: just right click the map
 
-## Limitations
-
-* Currently vegetation has no effect on the map visualization.
-
 ## Current Plans
 
-* Add legends and mouseover (to know what each tile represents)
+* Progress bar during map generation
+* Add mouseover (to glean details of a given hex)
 * Adjustable continent size
 * Generate rivers
 * Wind simulation
-* Visualize vegetation OR remove vegetation options.
 
 There are many more plans ahead, these are just the up-and-coming changes.
 
