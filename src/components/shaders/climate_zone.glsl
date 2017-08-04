@@ -44,7 +44,7 @@ float elnoise(vec2 wld,int zone){
   // if(zone == 1) return fbm(0.2, wld,0.02,0.4); //fbm(1.0, wld,0.3,0.35);
   // else if(zone == 2) return fbm(0.5, wld,0.1,0.4);
   // else if(zone == 3) return fbm(0.8, wld,0.3,0.75);
-  return fbm(0.2*float(zone) - 10.5*min(0.0,float(zone)-1.0),
+  return fbm(0.1*float(zone)*float(zone) - 10.5*min(0.0,float(zone)-1.0),
       wld,0.2,float(zone)*float(zone)*0.05+0.3);
 }
 
@@ -62,7 +62,7 @@ float elshade(/*float edge,*/vec2 wld,int zone){
 
   // calculate dot product to find shading vs. generic light source
   float el = dot(vec2(1.0,0.0),dir) / length(dir);
-  float atten = 0.01*(9.0-float(zone)*float(zone)) + 0.80;
+  float atten = 0.02*(9.0-float(zone)*float(zone)) + 0.75;
   return atten + el*(1.0-atten);
 }
 
