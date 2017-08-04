@@ -30,7 +30,7 @@ class ViewDialog extends React.Component{
                          disabled={this.props.load_pending}/>
             <RadioButton value="moist" label="Moisture"
                          disabled={this.props.load_pending}/>
-            <RadioButton value="climate_zones" label="Climate Zones"
+            <RadioButton value="climate_zones" label="Final Map"
                          disabled={this.props.load_pending}/>
           </RadioButtonGroup>
           <Toggle
