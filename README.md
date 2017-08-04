@@ -23,7 +23,6 @@ You can create and explore simple maps.
 
 ## Current Plans
 
-* Progress bar during map generation
 * Add mouseover (to glean details of a given hex)
 * Adjustable continent size
 * Generate rivers
