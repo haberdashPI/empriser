@@ -119,10 +119,10 @@ X * adding variable coloring to improve texutring
 * add warp to give in impression of globe?? (should be optional)
 
 X * add black border to hexes in the helper views
-* add legends to make the map easier to read
-* improve color interpolation (use color brewer) for helper views
+X * add legends to make the map easier to read
+X * improve color interpolation (use color brewer) for helper views
 
-* add a spinner during terrain generation?? 
+* add a spinner during terrain generation??
   (this will require breaking up the loops, maybe by
   having a schedular, or just a web worker)
 
