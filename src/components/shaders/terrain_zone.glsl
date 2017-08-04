@@ -23,10 +23,10 @@ vec3 hex_color(vec4 data){
   float depth = tex.y;
 
   // int zone = 3;
-  if(zone == 0)      return zoneColor(zone_h_0,zone_s_0,depth);
-  else if(zone == 1) return zoneColor(zone_h_1,zone_s_1,depth);
-  else if(zone == 2) return zoneColor(zone_h_2,zone_s_2,depth);
-  else if(zone == 3) return zoneColor(zone_h_3,zone_s_3,depth);
+  if(zone == 0)      return zoneColor(zone0,depth);
+  else if(zone == 1) return zoneColor(zone1,depth);
+  else if(zone == 2) return zoneColor(zone2,depth);
+  else if(zone == 3) return zoneColor(zone3,depth);
 }
 
 #pragma glslify: import('./color_hex.glsl')

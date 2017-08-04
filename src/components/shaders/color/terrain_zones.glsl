@@ -1,13 +1,9 @@
-const float zone_h_0 = 235.0/360.0;
-const float zone_h_1 = 97.0/360.0;
-const float zone_h_2 = 61.0/360.0;
-const float zone_h_3 = 0.0/360.0;
 
-const float zone_s_0 = 0.67;
-const float zone_s_1 = 0.50;
-const float zone_s_2 = 0.41;
-const float zone_s_3 = 0.00;
+vec3 zone0 = vec3(56.0/255.0,108.0/255.0,176.0/255.0);
+vec3 zone1 = vec3(127.0/255.0,201.0/255.0,127.0/255.0);
+vec3 zone2 = vec3(253.0/255.0,192.0/255.0,134.0/255.0);
+vec3 zone3 = vec3(190.0/255.0,174.0/255.0,212.0/255.0);
 
-vec3 zoneColor(float zone_h,float zone_s,float depth){
-  return hsv2rgb(vec3(zone_h,zone_s,depth*0.6 + 0.8));;
+vec3 zoneColor(vec3 zone,float depth){
+  return clamp(zone*(1.0 + depth*0.5),0.0,1.0);
 }

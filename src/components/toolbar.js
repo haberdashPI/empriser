@@ -89,11 +89,11 @@ class MapToolbar extends React.Component{
         }}>
           <ClimateZoneIcon color={this.iconColor("edit","climate")}/>
         </IconButton>
-        <IconButton onClick={() => {
+        {/* <IconButton onClick={() => {
             this.setActive("edit","vegetation")
-        }}>
-          <VegetIcon color={this.iconColor("edit","vegetation")}/>
-        </IconButton>
+            }}>
+            <VegetIcon color={this.iconColor("edit","vegetation")}/>
+            </IconButton> */}
       </ToolbarGroup>
     )
   }

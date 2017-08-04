@@ -1,7 +1,8 @@
 import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
-        MOVE, LOAD_MAP, VIEW_UPDATE, NAVIGATE_UPDATE} from '../actions'
+        MOVE, LOAD_MAP, VIEW_UPDATE, NAVIGATE_UPDATE,
+        LEGEND_UPDATE} from '../actions'
 import {randomStr,clamp,DEFAULT_COLORBY} from '../util'
 
 import generate_terrain from './terrain'
@@ -24,7 +25,8 @@ const initial_state = {
       smoothness: 0.5,
       seed: randomStr(),
       width: 100,
-      height: 60
+      height: 60,
+      mile_width: 8000,
     },
     terrain_zones: {
       depth: [0.3, 0.3, 0.4, 0.6],
@@ -43,7 +45,12 @@ const initial_state = {
       }
     },
     colorby: DEFAULT_COLORBY,
-    view: {scale: 1, x: 0, y: 0, modern_navigation: true}
+    view: {
+      scale: 1,
+      x: 0, y: 0,
+      modern_navigation: true,
+      draw_legends: true
+    }
   }),
   view: {width: Infinity, height: Infinity},
   data: {},
@@ -78,7 +85,8 @@ function constrain_view(state,settings){
 }
 
 export function map_scale(state,window){
-  return view_ratio(state,state.settings,window)*state.settings.getIn(['view','scale'])
+  return (view_ratio(state,state.settings,window)*
+    state.settings.getIn(['view','scale']))
 }
 
 function view_ratio(state,settings){
@@ -109,7 +117,14 @@ export default function map(state = resolve_settings(initial_state), action){
     case NAVIGATE_UPDATE:
       return {
         ...state,
-        settings: state.settings.setIn(['view','modern_navigation'],action.value)
+        settings: state.settings.setIn(['view','modern_navigation'],
+                                       action.value)
+      }
+    case LEGEND_UPDATE:
+      return {
+        ...state,
+        settings: state.settings.setIn(['view','draw_legends'],
+                                       action.value)
       }
     case TERRAIN_UPDATE:
       return resolve_settings(state,s => {

@@ -2,6 +2,7 @@ import {Map, is} from 'immutable'
 import $ from 'jquery'
 import * as PIXI from 'pixi.js'
 import _ from 'underscore'
+import convert from 'color-convert'
 
 import {MOVE, ZOOM, VIEW_UPDATE} from '../actions'
 
@@ -22,6 +23,17 @@ const TERRAIN_ZONE = 1;
 const MOISTURE = 2;
 const TEMPERATURE = 3;
 const CLIMATE_ZONE = 4;
+
+const moist_colors = [ 0x543005, 0x8c510a, 0xbf812d, 0xdfc27d, 0xf6e8c3,
+                       0xf5f5f5, 0xc7eae5, 0x80cdc1, 0x35978f, 0x01665e,
+                       0x003c30 ]
+
+const temp_colors = [ 0x67001f, 0xb2182b, 0xd6604d, 0xf4a582, 0xfddbc7,
+                      0xf7f7f7, 0xd1e5f0, 0x92c5de, 0x4393c3, 0x2166ac,
+                      0x053061 ]
+
+const terrainZ_names = ["Ocean","Land","Hills","Mountains"]
+const terrainZ_colors = [ 0x386cb0, 0x7fc97f, 0xfdc086, 0xbeaed4 ]
 
 const kind_to_index = {
   'terrain': TERRAIN,
@@ -64,7 +76,8 @@ function asTexture(width,height,encoder){
 export default class MapView{
   constructor(view,store){
     this.store = store
-    this.cache = {}
+    this.cache = []
+    this.legend = null
     this.renderer = new PIXI.WebGLRenderer(256,256)
     this.stage = new PIXI.Container()
 
@@ -183,16 +196,176 @@ export default class MapView{
     }
   }
 
-  setup_filter(data,filter_index){
+  setup_view(data,index){
     let image = new PIXI.Sprite(data)
-    image.filters = [this.filters[filter_index]]
-    return image
+    image.filters = [this.filters[index]]
+    this.cache[index] = image
   }
 
-  use_filter(filter){
+  draw_map_scale(mile_width,map_width,view_scale){
+    let scale = new PIXI.Container()
+    let width = window.innerWidth
+    let height = window.innerHeight
+
+    let hexs = Math.max(1,Math.floor(0.25*width / view_scale))
+    let pixels = hexs*view_scale
+    let miles = Math.round(hexs*mile_width/map_width * 10)/10
+    let unit = Math.min(width,height)*0.025;
+
+    let style = new PIXI.TextStyle({fontFamily: 'Helvetica', fontSize: 18})
+    let label = hexs > 1 ?
+                new PIXI.Text(hexs + " Hexs = "+miles+" mi") :
+                new PIXI.Text(hexs + " Hex = "+miles+" mi")
+
+    let bar = new PIXI.Graphics()
+
+    bar.beginFill(0xFFFFFF);
+    bar.lineStyle(3,0x000000,1);
+    let inWidth = Math.max(pixels,label.width)
+    bar.drawRect(width - 4*unit - inWidth,height - 3*unit - label.height,
+                 3*unit + inWidth,2*unit + label.height)
+
+    bar.lineStyle(2,0x000000,1);
+    bar.moveTo(width - (inWidth/2 + pixels/2) - 2.5*unit,height - 2.25*unit)
+    bar.lineTo(width - (inWidth/2 - pixels/2) - 2.5*unit,height - 2.25*unit)
+
+    bar.moveTo(width - (inWidth/2 + pixels/2) - 2.5*unit,height - 2.75*unit)
+    bar.lineTo(width - (inWidth/2 + pixels/2) - 2.5*unit,height - 1.75*unit)
+
+    bar.moveTo(width - (inWidth/2 - pixels/2) - 2.5*unit,height - 2.75*unit)
+    bar.lineTo(width - (inWidth/2 - pixels/2) - 2.5*unit,height - 1.75*unit)
+
+    scale.addChild(bar)
+
+    label.x = width - (inWidth/2 + label.width/2) - 2.5*unit
+    label.y = height - 2.5*unit - label.height
+    scale.addChild(label)
+
+    return scale
+  }
+
+  draw_key(names,colors){
+    let key = new PIXI.Container()
+
+    let width = window.innerWidth
+    let height = window.innerHeight
+    let unit = Math.min(width,height)*0.025;
+
+    let bar = new PIXI.Graphics()
+
+    let style = new PIXI.TextStyle({fontFamily: 'Helvetica', fontSize: 18})
+    let names_t = _.map(names,str => new PIXI.Text(str,style))
+    let names_width = _.reduce(names_t,(x,y) => x + y.width,0)
+
+    bar.beginFill(0xFFFFFF);
+    bar.lineStyle(2,0x000000,1);
+    bar.drawRect(width - unit*colors.length - 3*unit -
+                 names_width - 1.5*unit*names.length,
+                 height - unit - 3*unit,
+                 2*unit*colors.length + names_width +
+                 unit*names.length + 0.5*unit,3*unit)
+
+    let cur_width = 0
+    for(let i=0;i<names.length;i++){
+      bar.beginFill(colors[i])
+      bar.lineStyle(2,0x000000,1);
+      bar.drawRect(width - unit*(colors.length-i) - 2*unit -
+                   names_width + cur_width - 1.5*unit*names.length,
+                   height - unit - 2*unit,unit,unit)
+      names_t[i].x = width - unit*(colors.length-i) - 0.5*unit -
+                     names_width + cur_width - 1.5*unit*names.length
+      names_t[i].y = height - unit - 2*unit
+      cur_width += names_t[i].width + 2*unit
+    }
+    key.addChild(bar)
+
+    for(let i=0;i<names.length;i++)
+      key.addChild(names_t[i])
+
+    return key
+  }
+
+  draw_scale(start,stop,colors){
+    let scale = new PIXI.Container()
+
+    let width = window.innerWidth
+    let height = window.innerHeight
+    let unit = Math.min(width,height)*0.025;
+
+    let bar = new PIXI.Graphics()
+
+    let style = new PIXI.TextStyle({fontFamily: 'Helvetica', fontSize: 18})
+    let start_t = new PIXI.Text(start,style)
+    let stop_t = new PIXI.Text(stop,style)
+
+    bar.beginFill(0xFFFFFF);
+    bar.lineStyle(2,0x000000,1);
+    bar.drawRect(width - unit*(colors.length) - 3.5*unit -
+                 start_t.width - stop_t.width,
+                 height - unit - 3*unit,
+                 unit*(colors.length+3) +
+                 start_t.width + stop_t.width,3*unit)
+
+
+    for(let i=0;i<colors.length;i++){
+      bar.beginFill(colors[i])
+      bar.lineStyle(2,0x000000,1);
+      bar.drawRect(width - unit*(colors.length-i) - 2*unit - stop_t.width,
+                   height - unit - 2*unit,unit,unit)
+    }
+
+    start_t.x = width - unit*(colors.length) - 2.5*unit -
+                start_t.width - stop_t.width
+    start_t.y = height - unit - 2*unit
+    stop_t.x = width - stop_t.width - 1.5*unit
+    stop_t.y = height - unit - 2*unit
+
+    scale.addChild(bar)
+    scale.addChild(start_t)
+    scale.addChild(stop_t)
+
+    return scale
+  }
+
+  use_view(index){
     if(this.image) this.stage.removeChild(this.image)
-    this.image = filter
+    this.image = this.cache[index]
     this.stage.addChild(this.image)
+
+    if(!this.settings.getIn(['view','draw_legends'])){
+      if(this.legend) this.stage.removeChild(this.legend)
+      return
+    }
+
+    if(index == TERRAIN){
+      if(this.legend) this.stage.removeChild(this.legend)
+      let colors = _.map(_.range(10),i =>
+        parseInt("0x"+convert.rgb.hex([255*i/9,255*i/9,255*i/9])))
+      this.legend = this.draw_scale("Low","High",colors)
+      this.stage.addChild(this.legend)
+    }else if(index == MOISTURE){
+      if(this.legend) this.stage.removeChild(this.legend)
+      this.legend = this.draw_scale("Dry","Wet",moist_colors)
+      this.stage.addChild(this.legend)
+    }else if(index == TEMPERATURE){
+      if(this.legend) this.stage.removeChild(this.legend)
+      this.legend = this.draw_scale("Cold","Hot",temp_colors)
+      this.stage.addChild(this.legend)
+    }else if(index == TERRAIN_ZONE){
+      if(this.legend) this.stage.removeChild(this.legend)
+      this.legend = this.draw_key(terrainZ_names,terrainZ_colors)
+      this.stage.addChild(this.legend)
+    }else if(index == CLIMATE_ZONE){
+      if(this.legend) this.stage.removeChild(this.legend)
+      this.legend = this.draw_map_scale(
+        this.settings.getIn(['terrain','mile_width']),
+        this.settings.getIn(['terrain','width']),
+        map_scale(this.store.getState().map,window)
+      )
+      this.stage.addChild(this.legend)
+    }else{
+      if(this.legend) this.stage.removeChild(this.legend)
+    }
   }
 
   update(){
@@ -222,20 +395,19 @@ export default class MapView{
 
     if(!old_settings || this.settings.get('colorby') !== old_settings.get('colorby')){
       let kind = this.settings.get('colorby')
-      let cache = this.cache[kind]
-      if(cache) this.use_filter(cache,kind_to_index[kind])
-      else this.update_filter(kind)
+      if(this.cache[kind_to_index[kind]]) this.use_view(kind_to_index[kind])
+      else this.update_view(kind)
     }else{
       for(let k of ['terrain','terrain_zones','moist','temp','climate_zones']){
         if(is_changed_to(k)){
           this.cache = {}
-          this.update_filter(k)
+          this.update_view(k)
         }
       }
       let kind = this.settings.get('colorby')
       let cache = this.cache[kind]
-      if(cache) this.use_filter(cache,kind_to_index[kind])
-      else this.update_filter(kind)
+      if(cache) this.use_view(kind_to_index[kind])
+      else this.update_view(kind)
     }
 
     this.image.filters[0].uniforms.view_scale =
@@ -254,7 +426,7 @@ export default class MapView{
     this.renderer.render(this.stage)
   }
 
-  update_filter(kind){
+  update_view(kind){
     let height = this.settings.getIn(["terrain","height"])
     let width = this.settings.getIn(["terrain","width"])
 
@@ -270,9 +442,8 @@ export default class MapView{
           }
         }
       })
-      this.cache['terrain'] = this.setup_filter(terrain,TERRAIN)
-
-      this.use_filter(this.cache['terrain'])
+      this.setup_view(terrain,TERRAIN)
+      this.use_view(TERRAIN)
     }else if(kind === 'terrain_zones'){
       let terrain_zones = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -286,10 +457,8 @@ export default class MapView{
           }
         }
       })
-      this.cache['terrain_zones'] =
-        this.setup_filter(terrain_zones,TERRAIN_ZONE)
-
-      this.use_filter(this.cache['terrain_zones'])
+      this.setup_view(terrain_zones,TERRAIN_ZONE)
+      this.use_view(TERRAIN_ZONE)
     }if(kind === 'moist'){
       let moist = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -302,9 +471,8 @@ export default class MapView{
           }
         }
       })
-      this.cache['moist'] = this.setup_filter(moist,MOISTURE)
-
-      this.use_filter(this.cache['moist'])
+      this.setup_view(moist,MOISTURE)
+      this.use_view(MOISTURE)
     }if(kind === 'temp'){
       let temp = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -317,9 +485,8 @@ export default class MapView{
           }
         }
       })
-      this.cache['temp'] = this.setup_filter(temp,TEMPERATURE)
-
-      this.use_filter(this.cache['temp'])
+      this.setup_view(temp,TEMPERATURE)
+      this.use_view(TEMPERATURE)
     }else if(kind === 'climate_zones'){
       let climate_zones = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -330,15 +497,13 @@ export default class MapView{
               Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
             data[4*(yi*real_width + xi) + 2] =
               (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
-              (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
+               (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
             data[4*(yi*real_width + xi) + 3] = 255
           }
         }
       })
-      this.cache['climate_zones'] =
-        this.setup_filter(climate_zones,CLIMATE_ZONE)
-
-      this.use_filter(this.cache['climate_zones'])
+      this.setup_view(climate_zones,CLIMATE_ZONE)
+      this.use_view(CLIMATE_ZONE)
     }
   }
 }

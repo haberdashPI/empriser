@@ -1,5 +1,6 @@
 import {map_noise, flattenHist} from './util'
 import {hex_neighbors} from '../util'
+import _ from 'underscore'
 
 function find_water_distance(state){
   let width = state.settings.getIn(['terrain','width'])
@@ -22,7 +23,6 @@ function find_water_distance(state){
   for(let i=0;i<water_dists.length;i++)
     old_water_dists[i] = water_dists[i]
 
-  let max_dist = 0
   for(let pass=0;pass<num_passes;pass++){
     for(let yi=0;yi<height;yi++){
       for(let xi=0;xi<width;xi++){
@@ -57,11 +57,6 @@ function find_water_distance(state){
         }else{
           water_dists[yi*width+xi] = old_water_dists[yi*width+xi]
         }
-
-
-        if(isFinite(water_dists[yi*width+xi]) &&
-           water_dists[yi*width+xi] > max_dist)
-          max_dist = water_dists[yi*width+xi]
       }
     }
 
@@ -69,6 +64,8 @@ function find_water_distance(state){
     old_water_dists = water_dists
     water_dists = old_water_dists
   }
+
+  let max_dist = _.reduce(water_dists,(x,y) => x > y ? x : y)
 
   let max_zone = state.settings.getIn(['terrain_zones','depth']).count()
   for(let yi=0;yi<height;yi++){

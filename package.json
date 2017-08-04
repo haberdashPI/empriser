@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@axetroy/react-download": "^0.1.0",
+    "color-convert": "^1.9.0",
     "downloadjs": "^1.4.7",
     "immutable": "^3.8.1",
     "jquery": "^3.2.1",

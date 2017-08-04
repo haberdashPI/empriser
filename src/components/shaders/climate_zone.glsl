@@ -137,7 +137,7 @@ void main(void){
     int climate = int(mod(255.0*tex.z,8.0))-1;
 
     if(zone == 0)
-      gl_FragColor.rgb = zoneColor(zone_h_0,zone_s_0,depth)*elshade(wld,zone);
+      gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*elshade(wld,zone);
     else{ // if(vegetation == 0){
       if(climate == 0) gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone);
       else if(climate == 1) gl_FragColor.rgb = climateColor(climate1,climate2,wld,zone);

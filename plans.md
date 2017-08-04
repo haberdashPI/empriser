@@ -128,7 +128,7 @@ X * add black border to hexes in the helper views
 
 * change name of the climate zone view
 
-* EXTRA (after improved world map generation): improve edges to climate
+* EXTRA (after improved world map generation + rivers): improve edges to climate
   zone view.
 
 # Stage 4: improved world map generation

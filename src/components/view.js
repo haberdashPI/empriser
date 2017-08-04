@@ -8,7 +8,7 @@ import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/RaisedButton'
 import Toggle from 'material-ui/Toggle'
 
-import {COLORBY_UPDATE, NAVIGATE_UPDATE} from '../actions'
+import {COLORBY_UPDATE, NAVIGATE_UPDATE, LEGEND_UPDATE} from '../actions'
 
 class ViewDialog extends React.Component{
   constructor(props){
@@ -35,6 +35,11 @@ class ViewDialog extends React.Component{
                    "Drag to Move, Scroll to Zoom"}
             toggled={this.props.modern_navigation}
             onToggle={(event,value) => this.props.onModernNavigate(value)}/>
+          <Toggle
+            style={{paddingTop: "1em"}}
+            label={this.props.draw_legends ? "Draw Legends" : "Hide Legends"}
+            toggled={this.props.draw_legends}
+            onToggle={(event,value) => this.props.onDrawLegends(value)}/>
         </div>
       </Paper>
     )
@@ -44,7 +49,8 @@ class ViewDialog extends React.Component{
 export default connect(state => {
   return {
     colorby: state.map.settings.get('colorby'),
-    modern_navigation: state.map.settings.getIn(['view','modern_navigation'])
+    modern_navigation: state.map.settings.getIn(['view','modern_navigation']),
+    draw_legends: state.map.settings.getIn(['view','draw_legends'])
   }
 },dispatch => {
   return {
@@ -57,6 +63,12 @@ export default connect(state => {
     onModernNavigate: (value) => {
       dispatch({
         type: NAVIGATE_UPDATE,
+        value: value
+      })
+    },
+    onDrawLegends: (value) => {
+      dispatch({
+        type: LEGEND_UPDATE,
         value: value
       })
     }

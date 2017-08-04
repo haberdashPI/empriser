@@ -46,7 +46,7 @@ class TerrainDialog extends React.Component{
     let padding = {padding: "0.5em"}
     return (
       <Paper zDepth={2} className={"terrain-view"}>
-        <div style={{padding: "12pt"}}> 
+        <div style={{padding: "12pt"}}>
           <h3 style={{margin: 0}}>Terrain</h3>
           <Table selectable={false}>
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -72,13 +72,13 @@ class TerrainDialog extends React.Component{
                 <TableRowColumn width={"100em"} style={padding}>
                   <IconButton onClick={() => this.setTerrain("seed",randomStr())}>
                     <RefreshIcon/>
-                  </IconButton>                  
+                  </IconButton>
                   <TextField value={this.terrain("seed")} id="seed"
                              onChange={(e,v) => this.setTerrain("seed",v)}/>
                 </TableRowColumn>
                 <TableRowColumn>
                   <TextField value={this.terrain("width")} id="width"
-                             style={{width: "5em"}}          
+                             style={{width: "5em"}}
                              onChange={(e,v) => this.setTerrain("width",v)}
                              errorText={checkNumber("width",
                                                     this.terrain("width"))}/>
@@ -94,12 +94,17 @@ class TerrainDialog extends React.Component{
                   <IconButton onClick={() => this.setActive("terrain")}>
                     <ViewIcon color={this.iconColor("terrain")}/>
                   </IconButton>
-                </TableRowColumn>                
+                </TableRowColumn>
               </TableRow>
             </TableBody>
           </Table>
 
-          <div style={{width: "1em", height: "3em"}}/>              
+          <TextField value={this.terrain("mile_width")}
+                     floatingLabelText="Width in Miles"
+                     onChange={(e,v) => this.setTerrain("mile_width",v)}
+                     errorText={checkNumber("width",this.terrain("mile_width"))}/>
+
+          <div style={{width: "1em", height: "3em"}}/>
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
