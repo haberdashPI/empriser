@@ -333,6 +333,22 @@ export default class MapView{
     this.image = this.cache[index]
     this.stage.addChild(this.image)
 
+    let height = this.settings.getIn(["terrain","height"])
+    let width = this.settings.getIn(["terrain","width"])
+    this.update_view_params()
+
+    if(this.border) this.stage.removeChild(this.border)
+    let border_diff = window.innerWidth -
+                      width * this.image.filters[0].uniforms.view_scale
+    if(border_diff > 0){
+      this.border = new PIXI.Graphics()
+      this.border.beginFill(0xFFFFFF);
+      this.border.drawRect(0,0,border_diff/2,window.innerHeight)
+      this.border.drawRect(window.innerWidth-border_diff/2,0,
+                           border_diff/2,window.innerHeight)
+      this.stage.addChild(this.border)
+    }
+
     if(!this.settings.getIn(['view','draw_legends'])){
       if(this.legend) this.stage.removeChild(this.legend)
       return
@@ -367,6 +383,21 @@ export default class MapView{
     }else{
       if(this.legend) this.stage.removeChild(this.legend)
     }
+  }
+
+  update_view_params(){
+    let height = this.settings.getIn(["terrain","height"])
+    let width = this.settings.getIn(["terrain","width"])
+
+    this.image.filters[0].uniforms.view_scale =
+      map_scale(this.store.getState().map,window)
+    this.image.filters[0].uniforms.view_dims =
+      [window.innerWidth,window.innerHeight]
+    this.image.filters[0].uniforms.view_position = [
+      this.settings.getIn(['view','x']),
+      this.settings.getIn(['view','y'])
+    ]
+    this.image.filters[0].uniforms.map_dims = [width,height]
   }
 
   update(){
@@ -453,15 +484,7 @@ export default class MapView{
         this.use_view(kind_to_index[kind])
       }
 
-      this.image.filters[0].uniforms.view_scale =
-        map_scale(this.store.getState().map,window)
-      this.image.filters[0].uniforms.view_dims =
-        [window.innerWidth,window.innerHeight]
-      this.image.filters[0].uniforms.view_position = [
-        this.settings.getIn(['view','x']),
-        this.settings.getIn(['view','y'])
-      ]
-      this.image.filters[0].uniforms.map_dims = [width,height]
+      this.update_view_params()
     }
 
     this.old_width = window.innerWidth
