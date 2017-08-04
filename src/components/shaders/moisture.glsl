@@ -31,15 +31,15 @@ const vec3 m10 = vec3(0.0/255.0,60.0/255.0,48.0/255.0);
 
 vec3 hex_color(vec4 data){
   float moist = data.x;
-  if(moist < 1.0/10.0) return mix(m1,m2,(moist - 1.0/10.0)*10.0);
-  if(moist < 2.0/10.0) return mix(m2,m3,(moist - 2.0/10.0)*10.0);
-  if(moist < 3.0/10.0) return mix(m3,m4,(moist - 3.0/10.0)*10.0);
-  if(moist < 4.0/10.0) return mix(m4,m5,(moist - 4.0/10.0)*10.0);
-  if(moist < 5.0/10.0) return mix(m5,m6,(moist - 5.0/10.0)*10.0);
-  if(moist < 6.0/10.0) return mix(m6,m7,(moist - 6.0/10.0)*10.0);
-  if(moist < 7.0/10.0) return mix(m7,m8,(moist - 7.0/10.0)*10.0);
-  if(moist < 8.0/10.0) return mix(m8,m9,(moist - 8.0/10.0)*10.0);
-  else return mix(m9,m10,(moist - 9.0/10.0)*10.0);
+  if(moist < 1.0/9.0) return mix(m1,m2,(moist)*9.0);
+  if(moist < 2.0/9.0) return mix(m2,m3,(moist - 1.0/9.0)*9.0);
+  if(moist < 3.0/9.0) return mix(m3,m4,(moist - 2.0/9.0)*9.0);
+  if(moist < 4.0/9.0) return mix(m4,m5,(moist - 3.0/9.0)*9.0);
+  if(moist < 5.0/9.0) return mix(m5,m6,(moist - 4.0/9.0)*9.0);
+  if(moist < 6.0/9.0) return mix(m6,m7,(moist - 5.0/9.0)*9.0);
+  if(moist < 7.0/9.0) return mix(m7,m8,(moist - 6.0/9.0)*9.0);
+  if(moist < 8.0/9.0) return mix(m8,m9,(moist - 7.0/9.0)*9.0);
+  else return mix(m9,m10,(moist - 8.0/9.0)*9.0);
 }
 
 #pragma glslify: import('./color_hex.glsl')

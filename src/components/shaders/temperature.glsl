@@ -29,15 +29,15 @@ const vec3 t10 = vec3(5.0/255.0,48.0/255.0,97.0/255.0);
 
 vec3 hex_color(vec4 data){
   float temp = 1.0-data.x;
-  if(temp < 1.0/10.0) return mix(t1,t2,(temp - 1.0/10.0)*10.0);
-  if(temp < 2.0/10.0) return mix(t2,t3,(temp - 2.0/10.0)*10.0);
-  if(temp < 3.0/10.0) return mix(t3,t4,(temp - 3.0/10.0)*10.0);
-  if(temp < 4.0/10.0) return mix(t4,t5,(temp - 4.0/10.0)*10.0);
-  if(temp < 5.0/10.0) return mix(t5,t6,(temp - 5.0/10.0)*10.0);
-  if(temp < 6.0/10.0) return mix(t6,t7,(temp - 6.0/10.0)*10.0);
-  if(temp < 7.0/10.0) return mix(t7,t8,(temp - 7.0/10.0)*10.0);
-  if(temp < 8.0/10.0) return mix(t8,t9,(temp - 8.0/10.0)*10.0);
-  else return mix(t9,t10,(temp - 9.0/10.0)*10.0);
+  if(temp < 1.0/9.0) return mix(t1,t2,(temp)*9.0);
+  if(temp < 2.0/9.0) return mix(t2,t3,(temp - 1.0/9.0)*9.0);
+  if(temp < 3.0/9.0) return mix(t3,t4,(temp - 2.0/9.0)*9.0);
+  if(temp < 4.0/9.0) return mix(t4,t5,(temp - 3.0/9.0)*9.0);
+  if(temp < 5.0/9.0) return mix(t5,t6,(temp - 4.0/9.0)*9.0);
+  if(temp < 6.0/9.0) return mix(t6,t7,(temp - 5.0/9.0)*9.0);
+  if(temp < 7.0/9.0) return mix(t7,t8,(temp - 6.0/9.0)*9.0);
+  if(temp < 8.0/9.0) return mix(t8,t9,(temp - 7.0/9.0)*9.0);
+  else return mix(t9,t10,(temp - 8.0/9.0)*9.0);
 }
 
 #pragma glslify: import('./color_hex.glsl')
