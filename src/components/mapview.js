@@ -388,12 +388,12 @@ export default class MapView{
       if(this.loading) this.stage.removeChild(this.loading)
       this.loading = new PIXI.Container()
 
-      let graphics = new PIXI.Graphics()
-      graphics.beginFill(0xFFFFFF,0.65);
-      graphics.drawRect(0,0,window.innerWidth,window.innerHeight)
-
-      if(this.store.getState().map.progress > 5){
+      if(this.store.getState().map.progress > 3){
         let frame = Math.floor(this.store.getState().map.progress/2) % 8
+
+        let graphics = new PIXI.Graphics()
+        graphics.beginFill(0xFFFFFF,0.65);
+        graphics.drawRect(0,0,window.innerWidth,window.innerHeight)
 
         let margin = 0.0025
         let size = 0.04
@@ -403,9 +403,9 @@ export default class MapView{
           for(let lx=0;lx<3;lx++){
             if(lx === 1 && ly === 1) continue
             if(frameNum[frame] === curFrame++)
-              graphics.beginFill(0x4444aa,1.0);
+              graphics.beginFill(0x4444aa,0.65);
             else
-              graphics.beginFill(0x222222,1.0);
+              graphics.beginFill(0x222222,0.65);
             graphics.drawRect(
               window.innerWidth*(0.5 - (size*(2-lx) + margin)),
               window.innerHeight*0.5 - window.innerWidth*(size*ly - size*1.5),
@@ -413,9 +413,8 @@ export default class MapView{
               window.innerWidth*(size-margin*2))
           }
         }
+        this.loading.addChild(graphics)
       }
-
-      this.loading.addChild(graphics)
 
       this.stage.addChild(this.loading)
     }else{
