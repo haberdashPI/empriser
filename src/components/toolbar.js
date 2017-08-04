@@ -34,6 +34,7 @@ import SaveDialog from './save'
 import LoadDialog from './load'
 
 import {LOAD_MAP} from '../actions'
+import map_update from '../actions/map_update'
 
 injectTapEventPlugin();
 
@@ -137,7 +138,7 @@ class MapToolbar extends React.Component{
                     filename: name,
                     loadOpen: false
                   })
-                  this.props.onLoad(data)
+                  this.props.onLoad(this.props.map_state,data)
                 }}
               onCancel={() => this.setState({loadOpen: false})}/>)}
           {(!this.state.saveOpen ? null :
@@ -172,11 +173,17 @@ class MapToolbar extends React.Component{
 }
 
 export default connect(state => {
-  return {map_settings: state.map.settings}
+  return {
+    map_settings: state.map.settings,
+    map_state: state.map
+  }
 },dispatch => {
   return {
-    onLoad: (map_settings) => {
-      dispatch({type: LOAD_MAP, value: map_settings})
+    onLoad: (map_state,map_settings) => {
+      map_update(dispatch,map_state,{
+        type: LOAD_MAP,
+        value: map_settings
+      })
     }
   }
 })(MapToolbar)

@@ -95,11 +95,12 @@ export default function map(state = initial_state, action){
         progress: 0
       }
     case MAP_UPDATE_PROGRESS:
-      return {
-        ...state,
-        data: LOADING,
-        progress: action.value
-      }
+      if(state.data == LOADING)
+        return {
+          ...state,
+          progress: action.value
+        }
+      else return state
     case MAP_UPDATE_END:
       let result = {
         settings: fromJS(action.settings),

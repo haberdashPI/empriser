@@ -391,12 +391,31 @@ export default class MapView{
       let graphics = new PIXI.Graphics()
       graphics.beginFill(0xFFFFFF,0.65);
       graphics.drawRect(0,0,window.innerWidth,window.innerHeight)
-      this.loading.addChild(graphics)
 
-      let message = new PIXI.Text("Loading...")
-      message.x = window.innerWidth/2 - message.width/2
-      message.y = window.innerHeight/2 - message.height/2
-      this.loading.addChild(message)
+      if(this.store.getState().map.progress > 5){
+        let frame = Math.floor(this.store.getState().map.progress/2) % 8
+
+        let margin = 0.0025
+        let size = 0.04
+        let curFrame = 0;
+        let frameNum = [2,1,0,3,5,6,7,4]
+        for(let ly=0;ly<3;ly++){
+          for(let lx=0;lx<3;lx++){
+            if(lx === 1 && ly === 1) continue
+            if(frameNum[frame] === curFrame++)
+              graphics.beginFill(0x4444aa,1.0);
+            else
+              graphics.beginFill(0x222222,1.0);
+            graphics.drawRect(
+              window.innerWidth*(0.5 - (size*(2-lx) + margin)),
+              window.innerHeight*0.5 - window.innerWidth*(size*ly - size*1.5),
+              window.innerWidth*(size-margin*2),
+              window.innerWidth*(size-margin*2))
+          }
+        }
+      }
+
+      this.loading.addChild(graphics)
 
       this.stage.addChild(this.loading)
     }else{
