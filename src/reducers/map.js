@@ -2,22 +2,9 @@ import {fromJS, Map, List} from 'immutable'
 import {TERRAIN_UPDATE, TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         COLORBY_UPDATE, CLIMATE_ZONE_UPDATE, ZOOM, READY_MOVE,
         MOVE, LOAD_MAP, VIEW_UPDATE, NAVIGATE_UPDATE,
-        LEGEND_UPDATE} from '../actions'
+        LEGEND_UPDATE, LOADING, EMPTY, MAP_UPDATE_BEGIN, MAP_UPDATE_END,
+        MAP_UPDATE_PROGRESS} from '../actions'
 import {randomStr,clamp,DEFAULT_COLORBY} from '../util'
-
-import generate_terrain from './terrain'
-import generate_terrain_zones from './terrain_zones'
-import generate_moisture from './moisture'
-import generate_temperature from './temperature'
-import generate_climate from './climate'
-
-const generate_chain = List([
-  generate_terrain,
-  generate_terrain_zones,
-  generate_moisture,
-  generate_temperature,
-  generate_climate
-])
 
 const initial_state = {
   settings: fromJS({
@@ -53,15 +40,7 @@ const initial_state = {
     }
   }),
   view: {width: Infinity, height: Infinity},
-  data: {},
-}
-
-function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
-  if(settingsfn !== undefined)
-    state = {...state, settings: settingsfn(state.settings)}
-
-  if(chain.isEmpty()) return state
-  else return resolve_settings(chain.first()(state),undefined,chain.shift())
+  data: EMPTY
 }
 
 function wrap(x,min,max){
@@ -71,7 +50,7 @@ function wrap(x,min,max){
   return bounded + min
 }
 
-function constrain_view(state,settings){
+function constrain_view(state,settings = state.settings){
   let width = settings.getIn(['terrain','width'])
   let height = settings.getIn(['terrain','height'])*Math.sqrt(3/4)
   let maxZoom = Math.max(width,height)
@@ -106,9 +85,29 @@ function view_ratio(state,settings){
   return Math.min(v_width / width,v_height / height)
 }
 
-export default function map(state = resolve_settings(initial_state), action){
+export default function map(state = initial_state, action){
   let scale
   switch(action.type){
+    case MAP_UPDATE_BEGIN:
+      return {
+        ...state,
+        data: LOADING,
+        progress: 0
+      }
+    case MAP_UPDATE_PROGRESS:
+      return {
+        ...state,
+        data: LOADING,
+        progress: action.value
+      }
+    case MAP_UPDATE_END:
+      let result = {
+        settings: fromJS(action.settings),
+        data: action.data,
+        view: {width: window.innerWidth, height: window.innerHeight}
+      }
+      result.settings = constrain_view(result)
+      return result
     case VIEW_UPDATE:
       return {
         ...state,
@@ -126,23 +125,11 @@ export default function map(state = resolve_settings(initial_state), action){
         settings: state.settings.setIn(['view','draw_legends'],
                                        action.value)
       }
-    case TERRAIN_UPDATE:
-      return resolve_settings(state,s => {
-        return constrain_view(state,s.set('terrain',action.value).
-                                      set('colorby',action.colorby))
-      })
-    case TERRAIN_ZONE_UPDATE:
-      return resolve_settings(state,s => s.set('terrain_zones',action.value).
-                                           set('colorby',action.colorby))
-    case CLIMATE_UPDATE:
-      return resolve_settings(state,s => s.set('temp',action.value.temp).
-                                           set('moist',action.value.moist).
-                                           set('colorby',action.value.colorby))
-    case CLIMATE_ZONE_UPDATE:
-      return resolve_settings(state,s => s.set('climate_zones',action.value).
-                                           set('colorby',action.colorby))
     case COLORBY_UPDATE:
-      return resolve_settings(state,s => s.set('colorby',action.value))
+      return {
+        ...state,
+        settings: state.settings.set('colorby',action.value)
+      }
     case ZOOM:
       // TODO: calcualte actual amount of scaling, and then move
       // based on that, so we don't scroll when we reach the zoom limit
@@ -152,9 +139,9 @@ export default function map(state = resolve_settings(initial_state), action){
                                                       s => s * action.value))
       scale = before.getIn(['view','scale']) / after.getIn(['view','scale'])
       let x_offset = -(action.point[0] - window.innerWidth/2.0)*
-        (1-scale)/map_scale(state,window)
+      (1-scale)/map_scale(state,window)
       let y_offset = -(action.point[1] - window.innerHeight/2.0)*
-        (1-scale)/map_scale(state,window)
+      (1-scale)/map_scale(state,window)
 
       return {
         ...state,
@@ -172,11 +159,6 @@ export default function map(state = resolve_settings(initial_state), action){
                                view_ratio(state,state.settings)))
 
       return {...state, settings: settings}
-    case LOAD_MAP:
-      return resolve_settings({
-        settings: fromJS(action.value),
-        view: {width: window.innerWidth, height: window.innerHeight}
-      })
     default:
       return state;
   }

@@ -11,3 +11,12 @@ export const LOAD_MAP = "LOAD_MAP"
 export const VIEW_UPDATE = "VIEW_UPDATE"
 export const NAVIGATE_UPDATE = "NAVIGATE_UPDATE"
 export const LEGEND_UPDATE = "LEGEND_UPDATE"
+
+export const MAP_UPDATE_BEGIN = "MAP_UPDATE_BEGIN"
+export const MAP_UPDATE_PROGRESS = "MAP_UPDATE_PROGRESS"
+export const MAP_UPDATE_END = "MAP_UPDATE_END"
+export const LOADING = "LOADING"
+export const EMPTY = "EMPTY"
+export const ON_LOAD = "ON_LOAD"
+
+export const MAP_COMMAND = "MAP_COMAMND"

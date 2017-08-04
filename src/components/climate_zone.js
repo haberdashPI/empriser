@@ -13,7 +13,8 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 
-import {CLIMATE_ZONE_UPDATE} from '../actions'
+import {CLIMATE_ZONE_UPDATE, LOADING} from '../actions'
+import map_update from '../actions/map_update'
 import {checkNumber} from '../util'
 
 const climate_names = ["Arid","Semiarid","Tropical","Temperate (Warm)",
@@ -115,8 +116,10 @@ class ClimateZoneDialog extends React.Component{
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
+                        disabled={this.props.load_pending}
                         onClick={() =>
-                          this.props.onClimateUpdate(this.state)}>
+                          this.props.onClimateUpdate(
+                            this.props.map_state,this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -128,14 +131,16 @@ class ClimateZoneDialog extends React.Component{
 export default connect(state => {
   return {
     climate_zones: state.map.settings.get('climate_zones'),
-    colorby: state.map.settings.get('colorby')
+    colorby: state.map.settings.get('colorby'),
+    map_state: state.map,
+    load_pending: state.map.data == LOADING
   }
 },dispatch => {
   return {
-    onClimateUpdate: (state) => {
-      dispatch({
+    onClimateUpdate: (map_state,state) => {
+      map_update(dispatch,map_state,{
         type: CLIMATE_ZONE_UPDATE,
-        value: state.climate_zones,
+        value: state.climate_zones.toJS(),
         colorby: state.colorby
       })
     }

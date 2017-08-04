@@ -13,7 +13,9 @@ import RaisedButton from 'material-ui/RaisedButton'
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
-import {TERRAIN_UPDATE} from '../actions'
+import {TERRAIN_UPDATE, LOADING} from '../actions'
+import map_update from '../actions/map_update'
+
 import {randomStr,checkNumber,DEFAULT_COLORBY} from '../util'
 
 class TerrainDialog extends React.Component{
@@ -107,9 +109,10 @@ class TerrainDialog extends React.Component{
           <div style={{width: "1em", height: "3em"}}/>
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
+                        disabled={this.props.load_pending}
                         primary={true}
                         onClick={() =>
-                          this.props.onTerrainUpdate(this.state)}>
+                          this.props.onTerrainUpdate(this.props.state,this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -121,14 +124,16 @@ class TerrainDialog extends React.Component{
 export default connect(state => {
   return {
     terrain: state.map.settings.get('terrain'),
-    colorby: state.map.settings.get('colorby')
+    colorby: state.map.settings.get('colorby'),
+    state: state.map,
+    load_pending: state.map.data == LOADING
   }
 },dispatch => {
   return {
-    onTerrainUpdate: (state) => {
-      dispatch({
+    onTerrainUpdate: (map_state,state) => {
+      map_update(dispatch,map_state,{
         type: TERRAIN_UPDATE,
-        value: state.terrain,
+        value: state.terrain.toJS(),
         colorby: state.colorby
       })
     }

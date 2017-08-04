@@ -2,11 +2,14 @@ var path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    index: './src/index.js',
+    worker: './src/reducers/map_worker.js'
+  },
   devtool: 'source-map',
   output: {
     path: path.join(__dirname,'dist'),
-    filename: 'index_bundle.js'
+    filename: '[name].bundle.js',
   },
   resolve: {
     extensions: [".webpack.js", ".web.js", ".js", ".json", ".jsx"]

@@ -14,7 +14,8 @@ import RaisedButton from 'material-ui/RaisedButton'
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import RefreshIcon from 'material-ui/svg-icons/action/cached'
 
-import {CLIMATE_UPDATE} from '../actions'
+import {CLIMATE_UPDATE, LOADING} from '../actions'
+import map_update from '../actions/map_update'
 
 class ClimateDialog extends React.Component{
   constructor(props){
@@ -81,7 +82,7 @@ class ClimateDialog extends React.Component{
               <TableRow>
                 <TableRowColumn width={"75em"} style={padding}>Moisture</TableRowColumn>
                 <TableRowColumn style={padding}>
-                  <Slider key={"moist_strength"} 
+                  <Slider key={"moist_strength"}
                           value={this.moist(["strength"])}
                           sliderStyle={{margin: "0.2em"}}
                           onChange={(e,v) => this.setMoist(["strength"],v)}/>
@@ -115,7 +116,7 @@ class ClimateDialog extends React.Component{
               <TableRow>
                 <TableRowColumn style={padding} width={"75em"}>Temperature</TableRowColumn>
                 <TableRowColumn style={padding}>
-                  <Slider key={"temp_strength"} 
+                  <Slider key={"temp_strength"}
                           value={this.temp(["strength"])}
                           sliderStyle={{margin: "0.2em"}}
                           onChange={(e,v) => this.setTemp(["strength"],v)}/>
@@ -127,7 +128,7 @@ class ClimateDialog extends React.Component{
                           onChange={(e,v) => this.setTemp(["noise"],v)}/>
                 </TableRowColumn>
                 <TableRowColumn style={padding}>
-                  <Slider key={"temp_smooth"} 
+                  <Slider key={"temp_smooth"}
                           value={this.temp(["smoothness"])}
                           sliderStyle={{margin: "0.2em"}}
                           onChange={(e,v) => this.setTemp(["smoothness"],v)}/>
@@ -143,7 +144,7 @@ class ClimateDialog extends React.Component{
                   <IconButton onClick={() => this.setActive("temp")}>
                     <ViewIcon color={this.iconColor("temp")}/>
                   </IconButton>
-                </TableRowColumn>                
+                </TableRowColumn>
               </TableRow>
             </TableBody>
           </Table>
@@ -151,8 +152,10 @@ class ClimateDialog extends React.Component{
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
+                        disabled={this.props.load_pending}
                         onClick={() =>
-                          this.props.onMoistTempUpdate(this.state)}>
+                          this.props.onMoistTempUpdate(
+                            this.props.map_state,this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -166,12 +169,19 @@ export default connect(state => {
   return {
     temp: state.map.settings.get('temp'),
     moist: state.map.settings.get('moist'),
-    colorby: state.map.settings.get('colorby')
+    colorby: state.map.settings.get('colorby'),
+    map_state: state.map,
+    load_pending: state.map.data == LOADING
   }
 },dispatch => {
   return {
-    onMoistTempUpdate: (state) => {
-      dispatch({type: CLIMATE_UPDATE, value: state})
+    onMoistTempUpdate: (map_state,state) => {
+      map_update(dispatch,map_state,{
+        type: CLIMATE_UPDATE,
+        temp: state.temp.toJS(),
+        moist: state.moist.toJS(),
+        colorby: state.colorby
+      })
     }
   }
 })(ClimateDialog)

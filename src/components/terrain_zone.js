@@ -13,7 +13,8 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 
-import {TERRAIN_ZONE_UPDATE} from '../actions'
+import {TERRAIN_ZONE_UPDATE, LOADING} from '../actions'
+import map_update from '../actions/map_update'
 import {checkNumber, DEFAULT_COLORBY} from '../util'
 
 const zone_names = ["Ocean","Land","Hills","Mountains"]
@@ -24,7 +25,7 @@ function updatePercentsFn(index,value){
     return percents.withMutations(percents => {
       percents = percents.set(index,bValue)
       let delta = (1 - percents.reduce((x,y) => x+y))/(percents.count()-1)
-      
+
       for(let i=0;i<percents.count();i++){
         if(i != index){
           percents = percents.update(i,x => Math.min(1,Math.max(0,x + delta)))
@@ -95,7 +96,7 @@ class TerrainZoneDialog extends React.Component{
             </TableHeader>
 
             <TableBody displayRowCheckbox={false}>
-              {(_.map(zone_names,(zone,index) => 
+              {(_.map(zone_names,(zone,index) =>
                 <TableRow key={index}>
                   <TableRowColumn>{zone}</TableRowColumn>
 
@@ -121,8 +122,9 @@ class TerrainZoneDialog extends React.Component{
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
                         primary={true}
+                        disabled={this.props.load_pending}
                         onClick={() =>
-                          this.props.onZoneUpdate(this.state)}>
+                          this.props.onZoneUpdate(this.props.map_state,this.state)}>
             Render
           </RaisedButton>
         </div>
@@ -134,14 +136,16 @@ class TerrainZoneDialog extends React.Component{
 export default connect(state => {
   return {
     terrain_zones: state.map.settings.get('terrain_zones'),
-    colorby: state.map.settings.get('colorby')
+    colorby: state.map.settings.get('colorby'),
+    map_state: state.map,
+    load_pending: state.map.data == LOADING
   }
 },dispatch => {
   return {
-    onZoneUpdate: (state) => {
-      dispatch({
+    onZoneUpdate: (map_state,state) => {
+      map_update(dispatch,map_state,{
         type: TERRAIN_ZONE_UPDATE,
-        value: state.terrain_zones,
+        value: state.terrain_zones.toJS(),
         colorby: state.colorby
       })
     }

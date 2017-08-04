@@ -4,7 +4,8 @@ import * as PIXI from 'pixi.js'
 import _ from 'underscore'
 import convert from 'color-convert'
 
-import {MOVE, ZOOM, VIEW_UPDATE} from '../actions'
+import {MOVE, ZOOM, VIEW_UPDATE, LOADING, EMPTY, ON_LOAD} from '../actions'
+import map_update from '../actions/map_update'
 
 import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
         COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
@@ -83,7 +84,7 @@ export default class MapView{
 
     view.appendChild(this.renderer.view)
 
-    /* this.renderer.backgroundColor = rgb2hex([1,1,1])*/
+    /* this.renderer.backgroundColor = 0xFFFFFF*/
 
     this.renderer.view.style.position = "absolute";
     this.renderer.view.style.display = "block";
@@ -120,8 +121,8 @@ export default class MapView{
     })
 
     $(document).ready(() => {
-      this.store.dispatch({
-        type: VIEW_UPDATE,
+      map_update(this.store.dispatch,this.store.getState().map,{
+        type: ON_LOAD,
         width: window.innerWidth,
         height: window.innerHeight
       })
@@ -372,53 +373,78 @@ export default class MapView{
     // update settings and data
     if(is(this.settings,this.store.getState().map.settings) &&
        this.old_width === window.innerWidth &&
-       this.old_height === window.innerHeight) return;
+       this.old_height === window.innerHeight &&
+       this.store.getState().map.data !== LOADING &&
+       this.data !== LOADING) return;
     let old_settings = this.settings
     this.settings = this.store.getState().map.settings
+    let new_data = this.data == LOADING
     this.data = this.store.getState().map.data
 
-    // update map view
-    let height = this.settings.getIn(["terrain","height"])
-    let width = this.settings.getIn(["terrain","width"])
+    if(this.data == LOADING || this.data == EMPTY){
+      let style = new PIXI.TextStyle({
+        fontFamily: 'Helvetica', fontSize: 32
+      })
+      if(this.loading) this.stage.removeChild(this.loading)
+      this.loading = new PIXI.Container()
 
-    let is_changed_to = (kind) => {
-      return !(old_settings &&
-               is(this.settings.get('colorby'),old_settings.get('colorby')) &&
-               is(this.settings.get(kind),old_settings.get(kind)) &&
-               is(this.settings.get('terrain','width'),
-                  old_settings.get('terrain','width')) &&
-               is(this.settings.get('terrain','height'),
-                  old_settings.get('terrain','height')) &&
-               this.old_width === window.innerWidth &&
-               this.old_height === window.innerHeight)
-    }
+      let graphics = new PIXI.Graphics()
+      graphics.beginFill(0xFFFFFF,0.65);
+      graphics.drawRect(0,0,window.innerWidth,window.innerHeight)
+      this.loading.addChild(graphics)
 
-    if(!old_settings || this.settings.get('colorby') !== old_settings.get('colorby')){
-      let kind = this.settings.get('colorby')
-      if(this.cache[kind_to_index[kind]]) this.use_view(kind_to_index[kind])
-      else this.update_view(kind)
+      let message = new PIXI.Text("Loading...")
+      message.x = window.innerWidth/2 - message.width/2
+      message.y = window.innerHeight/2 - message.height/2
+      this.loading.addChild(message)
+
+      this.stage.addChild(this.loading)
     }else{
-      for(let k of ['terrain','terrain_zones','moist','temp','climate_zones']){
-        if(is_changed_to(k)){
-          this.cache = {}
-          this.update_view(k)
-        }
-      }
-      let kind = this.settings.get('colorby')
-      let cache = this.cache[kind]
-      if(cache) this.use_view(kind_to_index[kind])
-      else this.update_view(kind)
-    }
+      if(this.loading) this.stage.removeChild(this.loading)
 
-    this.image.filters[0].uniforms.view_scale =
-      map_scale(this.store.getState().map,window)
-    this.image.filters[0].uniforms.view_dims =
-      [window.innerWidth,window.innerHeight]
-    this.image.filters[0].uniforms.view_position = [
-      this.settings.getIn(['view','x']),
-      this.settings.getIn(['view','y'])
-    ]
-    this.image.filters[0].uniforms.map_dims = [width,height]
+      // update map view
+      let height = this.settings.getIn(["terrain","height"])
+      let width = this.settings.getIn(["terrain","width"])
+
+      let is_changed_to = (kind) => {
+        return !(old_settings && !new_data &&
+                 is(this.settings.get('colorby'),old_settings.get('colorby')) &&
+                 is(this.settings.get(kind),old_settings.get(kind)) &&
+                 is(this.settings.get('terrain','width'),
+                    old_settings.get('terrain','width')) &&
+                 is(this.settings.get('terrain','height'),
+                    old_settings.get('terrain','height')) &&
+                 this.old_width === window.innerWidth &&
+                 this.old_height === window.innerHeight)
+      }
+
+      if(!old_settings || this.settings.get('colorby') !== old_settings.get('colorby')){
+        let kind = this.settings.get('colorby')
+        if(!this.cache[kind_to_index[kind]]) this.update_view(kind)
+        this.use_view(kind_to_index[kind])
+      }else{
+        for(let k of ['terrain','terrain_zones','moist','temp','climate_zones']){
+          if(is_changed_to(k)){
+            this.cache[kind_to_index[k]] = undefined
+            this.update_view(k)
+          }
+        }
+        let kind = this.settings.get('colorby')
+        let cache = this.cache[kind_to_index[kind]]
+        if(!cache) this.update_view(kind)
+        this.use_view(kind_to_index[kind])
+      }
+
+      this.image.filters[0].uniforms.view_scale =
+        map_scale(this.store.getState().map,window)
+      this.image.filters[0].uniforms.view_dims =
+        [window.innerWidth,window.innerHeight]
+      this.image.filters[0].uniforms.view_position = [
+        this.settings.getIn(['view','x']),
+        this.settings.getIn(['view','y'])
+      ]
+      this.image.filters[0].uniforms.map_dims = [width,height]
+    }
 
     this.old_width = window.innerWidth
     this.old_height = window.innerHeight
@@ -443,7 +469,7 @@ export default class MapView{
         }
       })
       this.setup_view(terrain,TERRAIN)
-      this.use_view(TERRAIN)
+      /* this.use_view(TERRAIN)*/
     }else if(kind === 'terrain_zones'){
       let terrain_zones = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -458,7 +484,7 @@ export default class MapView{
         }
       })
       this.setup_view(terrain_zones,TERRAIN_ZONE)
-      this.use_view(TERRAIN_ZONE)
+      /* this.use_view(TERRAIN_ZONE)*/
     }if(kind === 'moist'){
       let moist = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -472,7 +498,7 @@ export default class MapView{
         }
       })
       this.setup_view(moist,MOISTURE)
-      this.use_view(MOISTURE)
+      /* this.use_view(MOISTURE)*/
     }if(kind === 'temp'){
       let temp = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -486,7 +512,7 @@ export default class MapView{
         }
       })
       this.setup_view(temp,TEMPERATURE)
-      this.use_view(TEMPERATURE)
+      /* this.use_view(TEMPERATURE)*/
     }else if(kind === 'climate_zones'){
       let climate_zones = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
@@ -503,7 +529,7 @@ export default class MapView{
         }
       })
       this.setup_view(climate_zones,CLIMATE_ZONE)
-      this.use_view(CLIMATE_ZONE)
+      /* this.use_view(CLIMATE_ZONE)*/
     }
   }
 }
