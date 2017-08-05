@@ -337,18 +337,6 @@ export default class MapView{
     let width = this.settings.getIn(["terrain","width"])
     this.update_view_params()
 
-    if(this.border) this.stage.removeChild(this.border)
-    let border_diff = window.innerWidth -
-                      width * this.image.filters[0].uniforms.view_scale
-    if(border_diff > 0){
-      this.border = new PIXI.Graphics()
-      this.border.beginFill(0xFFFFFF);
-      this.border.drawRect(0,0,border_diff/2,window.innerHeight)
-      this.border.drawRect(window.innerWidth-border_diff/2,0,
-                           border_diff/2,window.innerHeight)
-      this.stage.addChild(this.border)
-    }
-
     if(!this.settings.getIn(['view','draw_legends'])){
       if(this.legend) this.stage.removeChild(this.legend)
       return

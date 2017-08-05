@@ -85,7 +85,8 @@ float noisy_dist(vec2 a,vec2 b){
 }
 
 void main(void){
-  vec2 wld = img2wld(tex2img(vTextureCoord.xy,filterArea));
+  vec3 wld_shade = img2wld_shade(tex2img(vTextureCoord.xy,filterArea));
+  vec2 wld = wld_shade.xy;
   wld.x = mod(wld.x,map_dims.x);
   if(wld.x < 0.0) wld.x += map_dims.x;
 
@@ -137,15 +138,22 @@ void main(void){
     int climate = int(mod(255.0*tex.z,8.0))-1;
 
     if(zone == 0)
-      gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*elshade(wld,zone);
+      gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*elshade(wld,zone)*wld_shade.z;
     else{ // if(vegetation == 0){
-      if(climate == 0) gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone);
-      else if(climate == 1) gl_FragColor.rgb = climateColor(climate1,climate2,wld,zone);
-      else if(climate == 2) gl_FragColor.rgb = climateColor(climate2,climate1,wld,zone);
-      else if(climate == 3) gl_FragColor.rgb = climateColor(climate3,climate1,wld,zone);
-      else if(climate == 4) gl_FragColor.rgb = climateColor(climate4,climate5,wld,zone);
-      else if(climate == 5) gl_FragColor.rgb = climateColor(climate5,climate4,wld,zone);
-      else if(climate == 6) gl_FragColor.rgb = climateColor(climate6,climate5,wld,zone);
+      if(climate == 0)
+        gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone)*wld_shade.z;
+      else if(climate == 1)
+        gl_FragColor.rgb = climateColor(climate1,climate2,wld,zone)*wld_shade.z;
+      else if(climate == 2)
+        gl_FragColor.rgb = climateColor(climate2,climate1,wld,zone)*wld_shade.z;
+      else if(climate == 3)
+        gl_FragColor.rgb = climateColor(climate3,climate1,wld,zone)*wld_shade.z;
+      else if(climate == 4)
+        gl_FragColor.rgb = climateColor(climate4,climate5,wld,zone)*wld_shade.z;
+      else if(climate == 5)
+        gl_FragColor.rgb = climateColor(climate5,climate4,wld,zone)*wld_shade.z;
+      else if(climate == 6)
+        gl_FragColor.rgb = climateColor(climate6,climate5,wld,zone)*wld_shade.z;
     }
   }
 }

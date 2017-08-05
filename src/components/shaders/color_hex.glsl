@@ -1,5 +1,6 @@
 void color_hex(){
-  vec2 wld = img2wld(tex2img(vTextureCoord.xy,filterArea));
+  vec3 wld_shade = img2wld_shade(tex2img(vTextureCoord.xy,filterArea));
+  vec2 wld = wld_shade.xy;
   vec2 axl = wld2axl(wld);
 
   vec4 n23 = closest_neighbors(axl,wld);
@@ -21,7 +22,7 @@ void color_hex(){
     hex.x = mod(hex.x,map_dims.x);
     if(hex.x < 0.0) hex.x += map_dims.x;
     hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
-    gl_FragColor.rgb = hex_color(texture2D(uSampler,hex2dat(hex,filterArea)));
+    gl_FragColor.rgb = hex_color(texture2D(uSampler,hex2dat(hex,filterArea)))*wld_shade.z;
 
     float width = min(4.0/view_scale,0.1);
     if(view_scale > 10.0){

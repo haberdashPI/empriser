@@ -25,15 +25,36 @@
 // the two principal axes fall along the "grain" of the hexes, simplifying
 // world to grid translation.
 //
-
+const float pi = 3.1415926535897932384626433832795;
 const float r = 0.5; // hex radius
 const float s = 1.0/sqrt(3.0); // hex side length
 
+vec3 img2wld_shade(vec2 img){
+  vec2 p = (img - view_dims/2.0)/view_scale;
+  // p.x += map_dims.x/2.0;
+  // p.y += map_dims.y/2.0 * sqrt(3.0/4.0);
+
+  // return p;
+
+  p = p / map_dims;
+  float d = length(p);
+  if(d < 0.5){
+    p.x = asin(2.0*p.x)/3.0;
+    p.y = asin(2.0*p.y)/2.0;
+
+
+    p = p * map_dims;
+    p -= view_position;
+    p.x += map_dims.x/2.0;
+    p.y += map_dims.y/2.0 * sqrt(3.0/4.0);
+    return vec3(p.x,p.y,(0.25-d*d)/0.5 + 0.5);
+  }else{
+    return vec3(0.0,-10.0,1.0);
+  }
+}
+
 vec2 img2wld(vec2 img){
-  vec2 view = (img - view_dims/2.0)/view_scale - view_position;
-  view.x += map_dims.x/2.0;
-  view.y += map_dims.y/2.0 * sqrt(3.0/4.0);
-  return view;
+  return img2wld_shade(img).xy;
 }
 
 vec2 wld2axl(vec2 wld){
@@ -60,14 +81,12 @@ vec2 axl2hex(vec2 axl){
 }
 
 vec2 img2hex(vec2 img){
-  return axl2hex(wld2axl(img2wld(img)));
+  return axl2hex(wld2axl(img2wld_shade(img).xy));
 }
 
 vec2 img2axl(vec2 img){
-  return wld2axl(img2wld(img));
+  return wld2axl(img2wld_shade(img).xy);
 }
-
-const float pi = 3.1415926535897932384626433832795;
 
 vec4 closest_neighbors(vec2 axl,vec2 wld){
   vec2 c = axl2wld(axl);
