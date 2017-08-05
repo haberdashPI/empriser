@@ -116,7 +116,7 @@ X * optimize switching from one terrain view to another (only copy once)
 X * use periodic texturing to avoid a seam
 X * optimize terrain rendering (if possible)
 X * adding variable coloring to improve texutring
-* add warp to give in impression of globe?? (should be optional)
+X * add warp to give in impression of globe?? (should be optional)
 
 X * add black border to hexes in the helper views
 X * add legends to make the map easier to read
@@ -138,8 +138,10 @@ Anything I didn't finish in stage two, I now finalize here.
 * scale parameter: allow the scale of continents to be selected
 X * allow moisture to wrap around x axis
 X * optimization: implement terrain generation using typed arrays
-* wind generation to create adjusted moisture and temperature values
 * generate rivers based on moisture concentrations near mountains
+
+lower priority
+* wind generation to create adjusted moisture and temperature values
 
 # Stage 5: simple location generation
 
