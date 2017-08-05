@@ -53,7 +53,7 @@ function wrap(x,min,max){
 function constrain_view(state,settings = state.settings){
   let width = settings.getIn(['terrain','width'])
   let height = settings.getIn(['terrain','height'])*Math.sqrt(3/4)
-  let maxZoom = Math.max(width,height)
+  let maxZoom = Math.max(width,height)/5.0
   let middle_to_edge = state.view.height/map_scale(state)/2.0
   let maxY = Math.max(0,height/2 - middle_to_edge)
   let minY = Math.min(0,-height/2 + middle_to_edge)
