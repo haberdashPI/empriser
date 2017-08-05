@@ -12,21 +12,10 @@ Empriser will create the map for you.
 
 [You can use empriser by clicking here](http://haberdashPI.github.com/empriser)
 
-# Status
+## Upcoming Features
 
-You can create and explore simple maps. 
-
-## Things you can do:
-* Create maps
-* Save and load maps files
-* Save as image: just right click the map
-
-## Current Plans
-
-* Add mouseover (to glean details of a given hex)
 * Adjustable continent size
 * Generate rivers
-* Wind simulation
 
-There are many more plans ahead, these are just the up-and-coming changes.
+There are many more plans ahead, see plans.md for more details
 
