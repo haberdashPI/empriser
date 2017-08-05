@@ -139,8 +139,10 @@ export default class MapView{
   handleMove(event){
     this.lastPos = [event.clientX,event.clientY]
 
-    if(this.settings && this.settings.getIn(['view','modern_navigation']))
+    if(this.settings && this.settings.getIn(['view','modern_navigation'])){
+      this.renderer.view.style.cursor = "default"
       return
+    }
 
     if(!this.settings || !(event.buttons & LEFT)){
       this.renderer.view.style.cursor = "-webkit-grab"
