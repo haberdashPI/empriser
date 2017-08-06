@@ -128,7 +128,9 @@ X * add a spinner during terrain generation??
 
 X * change name of the climate zone view
 
-* EXTRA (after improved world map generation + rivers): improve edges to climate
+* enable navigation with keyboard keys
+
+* EXTRA (after improved world map generation + rivers): improve edges in climate
   zone view.
 
 # Stage 4: improved world map generation
@@ -139,6 +141,9 @@ Anything I didn't finish in stage two, I now finalize here.
 X * allow moisture to wrap around x axis
 X * optimization: implement terrain generation using typed arrays
 * generate rivers based on moisture concentrations near mountains
+* use second order noise to change roughness of terrain
+* optimize generation by only re-calculating parts that
+  have changed settings
 
 lower priority
 * wind generation to create adjusted moisture and temperature values
