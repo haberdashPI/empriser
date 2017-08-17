@@ -21,13 +21,14 @@ import TerrainIcon from 'material-ui/svg-icons/image/landscape'
 import ViewIcon from 'material-ui/svg-icons/image/remove-red-eye'
 import VegetIcon from 'material-ui/svg-icons/image/nature'
 
-import {ClimateIcon, ZoneIcon, ClimateZoneIcon} from './icons'
+import {ClimateIcon, ZoneIcon, ClimateZoneIcon, RiverIcon} from './icons'
 
 import TerrainDialog from './terrain'
 import TerrainZoneDialog from './terrain_zone'
 import ClimateDialog from './climate'
 import ClimateZoneDialog from './climate_zone'
 import VegetationDialog from './vegetation'
+import RiversDialog from './rivers'
 
 import ViewDialog from './view'
 import SaveDialog from './save'
@@ -95,6 +96,11 @@ class MapToolbar extends React.Component{
             }}>
             <VegetIcon color={this.iconColor("edit","vegetation")}/>
             </IconButton> */}
+        <IconButton onClick={() => {
+            this.setActive("edit","rivers")
+        }}>
+          <RiverIcon color={this.iconColor("edit","rivers")}/>
+        </IconButton>
       </ToolbarGroup>
     )
   }
@@ -124,9 +130,9 @@ class MapToolbar extends React.Component{
                 anchorOrigin={{horizontal: 'left', vertical: 'top'}}
                 targetOrigin={{horizontal: 'left', vertical: 'top'}}>
                 <MenuItem primaryText="Save…"
-                          onClick={() => this.setState({saveOpen: true})}/>
+                  onClick={() => this.setState({saveOpen: true})}/>
                 <MenuItem primaryText="Load…"
-                          onClick={() => this.setState({loadOpen: true})}/>
+                  onClick={() => this.setState({loadOpen: true})}/>
               </IconMenu>
             </ToolbarGroup>
           </Toolbar>
@@ -163,8 +169,11 @@ class MapToolbar extends React.Component{
             this.state.subactive === "climate") ?
            <ClimateZoneDialog/> : null}
           {(this.state.active === "edit" &&
-            this.state.subactive === "vegetation") ?
-           <VegetationDialog/> : null}
+            this.state.subactive === "rivers") ?
+           <RiversDialog/> : null}
+          {/* {(this.state.active === "edit" &&
+              this.state.subactive === "vegetation") ?
+              <VegetationDialog/> : null} */}
           {(this.state.active === "view") ? <ViewDialog/> : null}
         </Paper>
       </MuiThemeProvider>

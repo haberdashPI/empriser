@@ -10,7 +10,7 @@ import map_update from '../actions/map_update'
 import {ARID,  SEMIARID,  TROPICAL,  WARM_TEMPERATE,
         COLD_TEMPERATE,  SUBARCTIC,  ARCTIC,  GRASSES,
         FORREST,  JUNGLE,  EVERGREEN,  BUSH,
-        WETLAND, CLIMATE_BITS, VEG_BITS} from '../reducers/climate'
+        WETLAND, CLIMATE_BITS, TERRAIN_BITS} from '../reducers/climate'
 
 import {map_scale} from '../reducers/map'
 
@@ -549,12 +549,12 @@ export default class MapView{
         for(let yi=0;yi<height;yi++){
           for(let xi=0;xi<width;xi++){
             data[4*(yi*real_width + xi) + 0] =
-              this.data.terrain_zones.types[yi*width+xi] + 1
+              (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
+              (this.data.terrain_zones.types[yi*width+xi] + 1)*TERRAIN_BITS
+            // + (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
             data[4*(yi*real_width + xi) + 1] =
               Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
-            data[4*(yi*real_width + xi) + 2] =
-              (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
-               (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
+            data[4*(yi*real_width + xi) + 2] = this.data.rivers[yi*width+xi]
             data[4*(yi*real_width + xi) + 3] = 255
           }
         }

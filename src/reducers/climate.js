@@ -1,7 +1,8 @@
 import {map_noise,flattenHist} from './util'
 import _ from 'underscore'
 
-export const CLIMATE_BITS = 1
+export const CLIMATE_BITS = 2**0
+export const TERRAIN_BITS = 2**3
 
 export const ARID = 0
 export const SEMIARID = 1
@@ -11,14 +12,14 @@ export const COLD_TEMPERATE = 4
 export const SUBARCTIC = 5
 export const ARCTIC = 6
 
-export const VEG_BITS = 8
+// export const VEG_BITS = 8
 
 export const GRASSES = 0
-export const FORREST = 1
-export const JUNGLE = 2
-export const EVERGREEN = 3
-export const BUSH = 4
-export const WETLAND = 5
+// export const FORREST = 1
+// export const JUNGLE = 2
+// export const EVERGREEN = 3
+// export const BUSH = 4
+// export const WETLAND = 5
 
 Set.prototype.difference = function(setB) {
   var difference = new Set(this);
@@ -124,11 +125,11 @@ export default function generate_climate(state){
 
   for(let i=0;i<vegetation.length;i++) vegetation[i] = GRASSES
 
-  thresh_veg('forrest',[WARM_TEMPERATE],FORREST)
-  thresh_veg('evergreen',[COLD_TEMPERATE],EVERGREEN)
-  thresh_veg('jungle',[TROPICAL],JUNGLE)
-  thresh_veg('bush',[SEMIARID,WARM_TEMPERATE],BUSH)
-  thresh_veg('wetland',[TROPICAL,WARM_TEMPERATE,COLD_TEMPERATE],EVERGREEN)
+  /* thresh_veg('forrest',[WARM_TEMPERATE],FORREST)
+   * thresh_veg('evergreen',[COLD_TEMPERATE],EVERGREEN)
+   * thresh_veg('jungle',[TROPICAL],JUNGLE)
+   * thresh_veg('bush',[SEMIARID,WARM_TEMPERATE],BUSH)
+   * thresh_veg('wetland',[TROPICAL,WARM_TEMPERATE,COLD_TEMPERATE],EVERGREEN)*/
 
   return {
     ...state,

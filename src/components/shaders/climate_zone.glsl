@@ -127,19 +127,20 @@ void main(void){
     if(hex.x < 0.0) hex.x += map_dims.x;
     hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
 
-    // POSSIBLE PLAN: fit zone, veg, and climate all in one bit
-    // fit elevation neighborhood in next bit
-    // fit climate neighboord in third bit
-
     vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
-    int zone = int(255.0*tex.x)-1;
+    int climate = int(mod(255.0*tex.x,8.0))-1;
+    int zone = int(255.0*tex.x / 8.0)-1;
     float depth = tex.y;
-    int vegetation = int(255.0*tex.z / 8.0)-1;
-    int climate = int(mod(255.0*tex.z,8.0))-1;
+    int rivers = int(255.0*tex.z);
 
     if(zone == 0)
-      gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*elshade(wld,zone)*wld_shade.z;
-    else{ // if(vegetation == 0){
+      gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*
+        elshade(wld,zone)*wld_shade.z;
+    else if (rivers > 0){
+      // temporrarily, rivers are rednered by a color, to help debug
+      // river generation
+      gl_FragColor.rgb = vec3(0.8,0.2,0.2);
+    }else{ // if(vegetation == 0){
       if(climate == 0)
         gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone)*wld_shade.z;
       else if(climate == 1)

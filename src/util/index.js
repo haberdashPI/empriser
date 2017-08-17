@@ -20,13 +20,60 @@ function wraphexs(bounds){
 }
 
 export function hex_neighbors(a,b,bounds=[-Infinity,Infinity]){
-  if(Math.abs(b % 2) === 0)
-    return _.map([[a,b-1],[a+1,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]],
-                 wraphexs(bounds))
-  else{
-    return _.map([[a-1,b-1],[a,b-1],[a-1,b],[a+1,b],[a,b+1],[a+1,b+1]],
-                 wraphexs(bounds))
+  let t
+  let result = new Int32Array(12)
+  if(Math.abs(b % 2) === 0){
+    t = wraphexs([a,b-1])
+    result[0*2] = t[0]
+    result[0*2+1] = t[1]
+
+    t = wraphexs([a+1,b-1])
+    result[1*2] = t[0]
+    result[1*2+1] = t[1]
+
+    t = wraphexs([a-1,b])
+    result[2*2] = t[0]
+    result[2*2+1] = t[1]
+
+    t = wraphexs([a+1,b])
+    result[3*2] = t[0]
+    result[3*2+1] = t[1]
+
+    t = wraphexs([a,b+1])
+    result[4*2] = t[0]
+    result[4*2+1] = t[1]
+
+    t = wraphexs([a+1,b+1])
+    result[5*2] = t[0]
+    result[5*2+1] = t[1]
+
+  }else{
+    t = wraphexs([a-1,b-1])
+    result[0*2] = t[0]
+    result[0*2+1] = t[1]
+
+    t = wraphexs([a,b-1])
+    result[1*2] = t[0]
+    result[1*2+1] = t[1]
+
+    t = wraphexs([a-1,b])
+    result[2*2] = t[0]
+    result[2*2+1] = t[1]
+
+    t = wraphexs([a+1,b])
+    result[3*2] = t[0]
+    result[3*2+1] = t[1]
+
+    t = wraphexs([a,b+1])
+    result[4*2] = t[0]
+    result[4*2+1] = t[1]
+
+    t = wraphexs([a+1,b+1])
+    result[5*2] = t[0]
+    result[5*2+1] = t[1]
+
   }
+  return result
 }
 
 export function checkNumber(name,str,isint=true,

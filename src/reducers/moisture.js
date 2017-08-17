@@ -31,8 +31,8 @@ function find_water_distance(state){
         let neighbors = hex_neighbors(xi,yi,[width,height])
 
         for(let n=0;n<6;n++){
-          let nxi = neighbors[n][0]
-          let nyi = neighbors[n][1]
+          let nxi = neighbors[n*2+0]
+          let nyi = neighbors[n*2+1]
           if(nxi >= 0 && nxi < width && nyi >= 0 && nyi < height &&
              isFinite(old_water_dists[nyi*width+nxi])){
             let n_level = terrain_zones.types[nyi*width+nxi] +

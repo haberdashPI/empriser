@@ -2,20 +2,22 @@ import {List, fromJS} from 'immutable'
 
 import {ON_LOAD,TERRAIN_UPDATE,TERRAIN_ZONE_UPDATE, CLIMATE_UPDATE,
         CLIMATE_ZONE_UPDATE, LOAD_MAP, MAP_COMMAND,
-        MAP_UPDATE_END} from '../actions'
+        MAP_UPDATE_END, RIVER_UPDATE} from '../actions'
 
 import generate_terrain from './terrain'
 import generate_terrain_zones from './terrain_zones'
 import generate_moisture from './moisture'
 import generate_temperature from './temperature'
 import generate_climate from './climate'
+import generate_rivers from './rivers'
 
 const generate_chain = List([
   generate_terrain,
   generate_terrain_zones,
   generate_moisture,
   generate_temperature,
-  generate_climate
+  generate_climate,
+  generate_rivers
 ])
 
 function resolve_settings(state,settingsfn=undefined,chain=generate_chain){
@@ -51,6 +53,11 @@ function handle_update(settings,action){
     case CLIMATE_ZONE_UPDATE:
       return resolve_settings(state,s => {
         return s.set('climate_zones',fromJS(action.value)).
+                 set('colorby',action.colorby)
+      })
+    case RIVER_UPDATE:
+      return resolve_settings(state,s => {
+        return s.set('rivers',fromJS(action.value)).
                  set('colorby',action.colorby)
       })
     case LOAD_MAP:
