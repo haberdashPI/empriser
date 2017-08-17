@@ -55,7 +55,7 @@ class TerrainDialog extends React.Component{
               <TableRow>
                 <TableHeaderColumn style={padding}>smoothness</TableHeaderColumn>
                 <TableHeaderColumn width={"100em"}
-                                   style={{padding: "0.5em", textAlign: "right"}}>
+                  style={{padding: "0.5em", textAlign: "right"}}>
                   seed
                 </TableHeaderColumn>
                 <TableHeaderColumn>width</TableHeaderColumn>
@@ -68,29 +68,29 @@ class TerrainDialog extends React.Component{
               <TableRow>
                 <TableRowColumn style={padding}>
                   <Slider value={this.terrain("smoothness")}
-                          sliderStyle={{margin: "0.2em"}}
-                          onChange={(e,v) => this.setTerrain('smoothness',v)}/>
+                    sliderStyle={{margin: "0.2em"}}
+                    onChange={(e,v) => this.setTerrain('smoothness',v)}/>
                 </TableRowColumn>
                 <TableRowColumn width={"100em"} style={padding}>
                   <IconButton onClick={() => this.setTerrain("seed",randomStr())}>
                     <RefreshIcon/>
                   </IconButton>
                   <TextField value={this.terrain("seed")} id="seed"
-                             onChange={(e,v) => this.setTerrain("seed",v)}/>
+                    onChange={(e,v) => this.setTerrain("seed",v)}/>
                 </TableRowColumn>
                 <TableRowColumn>
                   <TextField value={this.terrain("width")} id="width"
-                             style={{width: "5em"}}
-                             onChange={(e,v) => this.setTerrain("width",v)}
-                             errorText={checkNumber("width",
-                                                    this.terrain("width"))}/>
+                    style={{width: "5em"}}
+                    onChange={(e,v) => this.setTerrain("width",v)}
+                    errorText={checkNumber("width",
+                                           this.terrain("width"))}/>
                 </TableRowColumn>
                 <TableRowColumn>
                   <TextField value={this.terrain("height")} id="height"
-                             style={{width: "5em"}}
-                             onChange={(e,v) => this.setTerrain("height",v)}
-                             errorText={checkNumber("height",
-                                                    this.terrain("height"))}/>
+                    style={{width: "5em"}}
+                    onChange={(e,v) => this.setTerrain("height",v)}
+                    errorText={checkNumber("height",
+                                           this.terrain("height"))}/>
                 </TableRowColumn>
                 <TableRowColumn>
                   <IconButton onClick={() => this.setActive("terrain")}>
@@ -102,17 +102,17 @@ class TerrainDialog extends React.Component{
           </Table>
 
           <TextField value={this.terrain("mile_width")}
-                     floatingLabelText="Width in Miles"
-                     onChange={(e,v) => this.setTerrain("mile_width",v)}
-                     errorText={checkNumber("width",this.terrain("mile_width"))}/>
+            floatingLabelText="Width in Miles"
+            onChange={(e,v) => this.setTerrain("mile_width",v)}
+            errorText={checkNumber("width",this.terrain("mile_width"))}/>
 
           <div style={{width: "1em", height: "3em"}}/>
           <RaisedButton style={{position: "absolute",
                                 bottom: "1em", right: "1em"}}
-                        disabled={this.props.load_pending}
-                        primary={true}
-                        onClick={() =>
-                          this.props.onTerrainUpdate(this.props.state,this.state)}>
+            disabled={this.props.load_pending}
+            primary={true}
+            onClick={() =>
+              this.props.onTerrainUpdate(this.props.state,this.state)}>
             Render
           </RaisedButton>
         </div>
