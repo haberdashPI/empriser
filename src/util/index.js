@@ -22,53 +22,54 @@ function wraphexs(bounds){
 export function hex_neighbors(a,b,bounds=[-Infinity,Infinity]){
   let t
   let result = new Int32Array(12)
+  let wrap = wraphexs(bounds)
   if(Math.abs(b % 2) === 0){
-    t = wraphexs([a,b-1])
+    t = wrap([a,b-1])
     result[0*2] = t[0]
     result[0*2+1] = t[1]
 
-    t = wraphexs([a+1,b-1])
+    t = wrap([a+1,b])
     result[1*2] = t[0]
     result[1*2+1] = t[1]
 
-    t = wraphexs([a-1,b])
+    t = wrap([a,b+1])
     result[2*2] = t[0]
     result[2*2+1] = t[1]
 
-    t = wraphexs([a+1,b])
+    t = wrap([a-1,b+1])
     result[3*2] = t[0]
     result[3*2+1] = t[1]
 
-    t = wraphexs([a,b+1])
+    t = wrap([a-1,b])
     result[4*2] = t[0]
     result[4*2+1] = t[1]
 
-    t = wraphexs([a+1,b+1])
+    t = wrap([a-1,b-1])
     result[5*2] = t[0]
     result[5*2+1] = t[1]
 
   }else{
-    t = wraphexs([a-1,b-1])
+    t = wrap([a+1,b-1])
     result[0*2] = t[0]
     result[0*2+1] = t[1]
 
-    t = wraphexs([a,b-1])
+    t = wrap([a+1,b])
     result[1*2] = t[0]
     result[1*2+1] = t[1]
 
-    t = wraphexs([a-1,b])
+    t = wrap([a+1,b+1])
     result[2*2] = t[0]
     result[2*2+1] = t[1]
 
-    t = wraphexs([a+1,b])
+    t = wrap([a,b+1])
     result[3*2] = t[0]
     result[3*2+1] = t[1]
 
-    t = wraphexs([a,b+1])
+    t = wrap([a-1,b])
     result[4*2] = t[0]
     result[4*2+1] = t[1]
 
-    t = wraphexs([a+1,b+1])
+    t = wrap([a,b-1])
     result[5*2] = t[0]
     result[5*2+1] = t[1]
 

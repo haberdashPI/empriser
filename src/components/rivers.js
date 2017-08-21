@@ -60,6 +60,9 @@ class RiversDialog extends React.Component{
               <TableRow>
                 <TableHeaderColumn style={padding}>density</TableHeaderColumn>
                 <TableHeaderColumn style={padding}>
+                  momentum
+                </TableHeaderColumn>
+                <TableHeaderColumn style={padding}>
                   randomness
                 </TableHeaderColumn>
                 <TableHeaderColumn width={"100em"}
@@ -74,6 +77,11 @@ class RiversDialog extends React.Component{
                   <Slider value={this.river("density")}
                     sliderStyle={{margin: "0.2em"}}
                     onChange={(e,v) => this.setRiver('density',v)}/>
+                </TableRowColumn>
+                <TableRowColumn style={padding}>
+                  <Slider value={this.river("momentum")}
+                    sliderStyle={{margin: "0.2em"}}
+                    onChange={(e,v) => this.setRiver('momentum',v)}/>
                 </TableRowColumn>
                 <TableRowColumn style={padding}>
                   <Slider value={this.river("randomness")}

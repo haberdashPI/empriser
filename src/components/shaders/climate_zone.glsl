@@ -28,6 +28,8 @@ const vec3 climate6 = vec3(252.0/255.0,252.0/255.0,255.0/255.0);
 
 const vec3 elevation = vec3(120.0/255.0,120.0/255.0,087.0/255.0);
 
+const float river_width = 0.075;
+
 float fbm(float s,vec2 p,float c,float H){
   float sum = 0.0;
   for(int i=0;i<3;i++){
@@ -92,7 +94,6 @@ void main(void){
 
   vec2 axl = wld2axl(wld);
 
-  // note axl2hex is the same as hex2axl
   if(any(lessThan(wld,vec2(0.0,0.0))) ||
      wld.x > map_dims.x || wld.y > map_dims.y * 0.5/s)
     gl_FragColor = vec4(1.0,1.0,1.0,1.0);
@@ -123,9 +124,13 @@ void main(void){
       hex = axl2hex(n23.zw);
     }
 
-    hex.x = mod(hex.x,map_dims.x);
+    // hex.x = mod(hex.x,map_dims.x);
+    // if(hex.x < 0.0) hex.x += map_dims.x;
+
+    hex.x -= map_dims.x * floor(hex.x/map_dims.x);
     if(hex.x < 0.0) hex.x += map_dims.x;
     hex.y = clamp(hex.y,0.0,map_dims.y-1.0);
+    axl = hex2axl(hex);
 
     vec4 tex  = texture2D(uSampler,hex2dat(hex,filterArea));
     int climate = int(mod(255.0*tex.x,8.0))-1;
@@ -136,11 +141,7 @@ void main(void){
     if(zone == 0)
       gl_FragColor.rgb = zoneColor(zone0,2.0*depth)*
         elshade(wld,zone)*wld_shade.z;
-    else if (rivers > 0){
-      // temporrarily, rivers are rednered by a color, to help debug
-      // river generation
-      gl_FragColor.rgb = vec3(0.8,0.2,0.2);
-    }else{ // if(vegetation == 0){
+    else{ // if(vegetation == 0){
       if(climate == 0)
         gl_FragColor.rgb = climateColor(climate0,climate1,wld,zone)*wld_shade.z;
       else if(climate == 1)
@@ -156,5 +157,77 @@ void main(void){
       else if(climate == 6)
         gl_FragColor.rgb = climateColor(climate6,climate5,wld,zone)*wld_shade.z;
     }
+      // to start, just color the sides that have a river entering or existing
+      // to make sure I have that right sides figured out
+
+      vec2 c = axl2wld(axl);
+      if(abs(wld.x - c.x) > 2.0){
+        wld.x -= map_dims.x;
+        // float diff = abs(wld.x - c.x);
+        // gl_FragColor.rgb = vec3(diff,diff,diff);
+        // return;
+      } 
+      vec2 dir = wld - c;
+      
+      // float angle = mod(atan(dir.y,dir.x) - 3.0*pi/2.0,2.0*pi);
+      // float n = floor(angle/(pi/3.0));
+
+      // TODO: trying to make spokes
+
+      // the following test could be replaced by
+      //
+      // rivers & closest_neighbor_index(axl,wld) > 0
+      //
+      // but glsl 1.0 doesn't supper bitwise operators
+
+      // TODO: how to introduce noise into river 
+      // placement to make it look windey
+
+      // real issue: how to ensure joining rivers actually join when we do this
+      // TODO: have an index consistnet at joins (right now you can do this by
+      // counting from the ocean, but if we allow rivers to split, this gets a
+      // little harder)
+      // then we can create 1d noise as a functino of how far along
+      // the river a given point is.
+
+      if(length(dir) < river_width && rivers > 0){
+        gl_FragColor.rgb = vec3(1.0,0.0,0.0);        
+      }
+      else for(float n=0.0;n<6.0;n++){
+        float bit = pow(2.0,n);
+        float upper_bit = pow(2.0,n+1.0);
+
+        if(mod(float(rivers),upper_bit)/bit >= 1.0){
+          float angle = n*(pi/3.0) + 3.0*pi/2.0 + pi/6.0;
+          vec2 cdir = vec2(cos(angle),sin(angle));
+        
+          float d = dot(dir,cdir);
+          if(d > 0.0 && length(dir - cdir*d) < river_width)
+            gl_FragColor.rgb = vec3(1.0,0.0,0.0);
+        }
+      }
+
+      //gl_FragColor.rgb *= (1.0-length(dir))*0.5+0.5;
+
+      // if(n == 0.0){
+      //   gl_FragColor.rgb = vec3(1.0,0.0,0.0);
+      // }
+      // if(n == 1.0){
+      //   gl_FragColor.rgb = vec3(0.0,1.0,0.0);
+      // }
+      // if(n == 2.0){
+      //   gl_FragColor.rgb = vec3(0.0,0.0,1.0);
+      // }
+      // if(n == 3.0){
+      //   gl_FragColor.rgb = vec3(1.0,0.0,1.0);
+      // }
+      // if(n == 4.0){
+      //   gl_FragColor.rgb = vec3(1.0,1.0,0.0);
+      // }
+      // if(n == 5.0){
+      //   gl_FragColor.rgb = vec3(0.0,1.0,1.0);
+      // }
+
+    //}
   }
 }

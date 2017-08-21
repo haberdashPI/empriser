@@ -548,13 +548,16 @@ export default class MapView{
       let climate_zones = asTexture(width,height,(data,real_width) => {
         for(let yi=0;yi<height;yi++){
           for(let xi=0;xi<width;xi++){
+            // TODO: store the river index in the last 4 bits
+            // of color 1, and the next four bits of color 2
+            // and compress the depth to fit into 4 instead of 8 bits
             data[4*(yi*real_width + xi) + 0] =
               (this.data.climate_zones.climate[yi*width+xi] + 1)*CLIMATE_BITS +
               (this.data.terrain_zones.types[yi*width+xi] + 1)*TERRAIN_BITS
             // + (this.data.climate_zones.vegetation[yi*width+xi] + 1)*VEG_BITS
             data[4*(yi*real_width + xi) + 1] =
               Math.floor(255*this.data.terrain_zones.depths[yi*width+xi])
-            data[4*(yi*real_width + xi) + 2] = this.data.rivers[yi*width+xi]
+            data[4*(yi*real_width + xi) + 2] = this.data.rivers.sides[yi*width+xi]
             data[4*(yi*real_width + xi) + 3] = 255
           }
         }

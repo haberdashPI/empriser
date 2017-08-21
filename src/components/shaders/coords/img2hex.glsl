@@ -46,8 +46,8 @@ vec3 img2wld_shade(vec2 img){
     p = p * map_dims;
     p -= view_position;
     p.x += map_dims.x/2.0;
-    p.y += map_dims.y/2.0 * sqrt(3.0/4.0);
-    return vec3(p.x,p.y,(0.25-d*d)/0.5 + 0.5);
+    p.y += map_dims.y/2.0;
+    return vec3(p.x,p.y*sqrt(3.0/4.0),(0.25-d*d)/0.5 + 0.5);
   }else{
     return vec3(0.0,-10.0,1.0);
   }
@@ -79,6 +79,14 @@ vec2 axl2hex(vec2 axl){
   hex.y = axl.y;
   return hex;
 }
+
+vec2 hex2axl(vec2 axl){
+  vec2 hex;
+  hex.x = axl.x - (axl.y - mod(axl.y,2.0)) / 2.0;
+  hex.y = axl.y;
+  return hex;
+}
+
 
 vec2 img2hex(vec2 img){
   return axl2hex(wld2axl(img2wld_shade(img).xy));

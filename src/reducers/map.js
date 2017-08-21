@@ -31,7 +31,7 @@ const initial_state = {
         wetland: {density: 0.1, smoothness: 0.4, seed: randomStr()}
       }
     },
-    rivers: {density: 0.5, randomness: 0.5, seed: randomStr()},
+    rivers: {density: 0.5, momentum: 0.5, randomness: 0.5, seed: randomStr()},
     colorby: DEFAULT_COLORBY,
     view: {
       scale: 1,
