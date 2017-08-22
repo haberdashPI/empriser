@@ -54,7 +54,8 @@ export default function geenerate_rivers(state){
     // keep track of where the river came from
     let river_from = -1
     // cotinue river as long as there is no water in the current tile
-    // TODO: track the history of the river, and add indices backwards from its mouth
+
+    // TODO: don't allow rivers to run into themselves
     let history = Array()
     while(state.data.terrain_zones.types[yi*width+xi] > 0){
       

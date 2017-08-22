@@ -28,7 +28,7 @@ const vec3 climate6 = vec3(252.0/255.0,252.0/255.0,255.0/255.0);
 
 const vec3 elevation = vec3(120.0/255.0,120.0/255.0,087.0/255.0);
 
-const float river_width = 0.075;
+const float river_width = 0.03;
 
 float fbm(float s,vec2 p,float c,float H){
   float sum = 0.0;
@@ -81,6 +81,10 @@ vec3 climateColor(vec3 color,vec3 color2,/*float edge,*/vec2 wld,int zone){
   return col;
 }
 
+
+// TODO: fix this noisy distance, so that it doesn't mix
+// spots of terrain, but is a single noisy line
+// ALSO: there is a bug where we get black along the x edge now...
 float noisy_dist(vec2 a,vec2 b){
   vec2 diff = b-a;
   return length(diff) + fbm(2.5,(normalize(diff) + a),3.0*0.13,0.7) + 3.0*0.13;
@@ -166,9 +170,9 @@ void main(void){
         // float diff = abs(wld.x - c.x);
         // gl_FragColor.rgb = vec3(diff,diff,diff);
         // return;
-      } 
+      }
       vec2 dir = wld - c;
-      
+
       // float angle = mod(atan(dir.y,dir.x) - 3.0*pi/2.0,2.0*pi);
       // float n = floor(angle/(pi/3.0));
 
@@ -180,7 +184,7 @@ void main(void){
       //
       // but glsl 1.0 doesn't supper bitwise operators
 
-      // TODO: how to introduce noise into river 
+      // TODO: how to introduce noise into river
       // placement to make it look windey
 
       // real issue: how to ensure joining rivers actually join when we do this
@@ -191,7 +195,7 @@ void main(void){
       // the river a given point is.
 
       if(length(dir) < river_width && rivers > 0){
-        gl_FragColor.rgb = vec3(1.0,0.0,0.0);        
+        gl_FragColor.rgb = zoneColor(zone0,0.8);
       }
       else for(float n=0.0;n<6.0;n++){
         float bit = pow(2.0,n);
@@ -200,10 +204,17 @@ void main(void){
         if(mod(float(rivers),upper_bit)/bit >= 1.0){
           float angle = n*(pi/3.0) + 3.0*pi/2.0 + pi/6.0;
           vec2 cdir = vec2(cos(angle),sin(angle));
-        
-          float d = dot(dir,cdir);
-          if(d > 0.0 && length(dir - cdir*d) < river_width)
-            gl_FragColor.rgb = vec3(1.0,0.0,0.0);
+          float d_base = dot(dir,cdir);
+          float base_noise = fbm(3.0,c+d_base*cdir,0.45,0.5);
+          float connect_dist = min(d_base,0.5-d_base);
+          float noise = base_noise*smoothstep(connect_dist,0.0,0.02);
+
+          vec2 dir_noise = dir + noise*vec2(cdir.y,cdir.x);
+          float d = dot(dir_noise,cdir);
+          vec2 perp = dir_noise - cdir*d;
+          //float noise =
+          if(d_base > 0.0 && length(perp) < river_width)
+            gl_FragColor.rgb = zoneColor(zone0,0.8);
         }
       }
 
