@@ -28,7 +28,7 @@ export default function geenerate_rivers(state){
   let max_rivers = max_dense*width*height
 
   let num_rivers = Math.floor(min_rivers + (max_rivers-min_rivers)*relative_density)
-  
+
   let rivers = new Int8Array(width*height)
   let river_indices = new Int8Array(width*height)
   for(let i=0;i<rivers.length;i++) rivers[i] = 0
@@ -38,27 +38,25 @@ export default function geenerate_rivers(state){
   let map_indices = _.shuffle(_.filter(_.range(width*height),i =>
     state.data.terrain_zones.types[i] == 3))
 
-  // make a simple "river" with all sides included
-  // for(let i=0;i<rivers.length;i++) rivers[i] = 3;
+  // TOOD: change river creation
+  // algorithm, these leads to many
+  // "dead" rivers (those with no
+  // mouth to the ocean)
+
 
   for(let i=0;i<num_rivers;i++){
     let map_index = map_indices[i];
     let yi = Math.floor(map_index / width)
     let xi = map_index % width
 
-    // TODO: should rivers be able to split? if so how do we
-    // make sure there are consistent indices.
-    // if we have a joining of previosuly split rivers it could
-    // make a simple indexing impossible.
-
     // keep track of where the river came from
     let river_from = -1
     // cotinue river as long as there is no water in the current tile
 
     // TODO: don't allow rivers to run into themselves
-    let history = Array()
+    let history = new Array()
     while(state.data.terrain_zones.types[yi*width+xi] > 0){
-      
+
       let joined = rivers[yi*width+xi] > 0
 
       //mark entrance of river
@@ -68,7 +66,7 @@ export default function geenerate_rivers(state){
       if(joined){
         history.push([xi,yi])
         break
-      } 
+      }
 
       // get all of the neighbors
       let n = hex_neighbors(xi,yi,[width,height])
@@ -82,14 +80,14 @@ export default function geenerate_rivers(state){
         if(river_from != j){
           let tgradient = state.data.terrain[yi*width+xi] -
                           state.data.terrain[n[j*2+1]*width+n[j*2+0]]
-          
+
           let mgradient = state.data.moist[n[j*2+1]*width+n[j*2+0]] -
                           state.data.moist[yi*width+xi]
 
           let strength = tgradient + mgradient
           if(river_from >= 0)
             strength += momentum*Math.cos(π/3 * (j-(river_from+3)))/2
-          
+
           cum_weights[j] = weight_total +=
             Math.exp(weight_sigma_max * (1-randomness) * strength)
         }else cum_weights[j] = weight_total
@@ -109,14 +107,14 @@ export default function geenerate_rivers(state){
       // mark the exit of the river
       rivers[yi*width+xi] |= 2**next_tile
       history.push([xi,yi])
-      
+
       // move to the next tile
       xi = n[next_tile*2+0]
       yi = n[next_tile*2+1]
 
       // remember the entrance of the river
       river_from = ((next_tile+3) % 6)
-      
+
       // if we've reached the end of the map, just let the river run off of it.
       if(yi <= 0 || yi >= height){
         rivers[width*yi + xi] |= 2**next_tile
