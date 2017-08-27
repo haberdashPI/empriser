@@ -19,7 +19,7 @@ function wraphexs(bounds){
   }
 }
 
-export function hex_neighbors(a,b,bounds=[-Infinity,Infinity]){
+export function hex_neighbors(a,b,bounds=[Infinity,Infinity]){
   let t
   let result = new Int32Array(12)
   let wrap = wraphexs(bounds)
