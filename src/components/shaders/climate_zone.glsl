@@ -115,7 +115,7 @@ HexPos wld2pos(vec2 wld_for_hex,vec2 true_wld){
   // recalculate the axial coordinates after wrapping
   pos.axl = hex2axl(pos.hex);
 
-  // find the center, and the true wold coordinate it around, if necssary
+  // find the center, and the true wold coordinate its around, if necssary
   pos.c = axl2wld(pos.axl);
   pos.wld = true_wld;
   if(pos.wld.x - pos.c.x > 2.0) pos.wld.x -= map_dims.x;
@@ -171,7 +171,7 @@ vec3 color_hex(vec2 wld,float shade,HexPos pos){
   int zone = int(255.0*tex.x / 8.0)-1;
   float depth = tex.y;
   int rivers = int(255.0*tex.z);
-  
+
   vec3 color;
   if(zone == 0)
     color = zoneColor(zone0,2.0*depth)*shade;
@@ -202,12 +202,7 @@ vec3 color_hex(vec2 wld,float shade,HexPos pos){
   // terrain shading
   vec2 shade_dir = eldir(/*edge,*/wld,zone);
 
-  // Shading TODO:
-  // 1. have a slow transition in shading near river join
-  //    by using distance of proj_len from 0.0.
-  // 2. use the dot product approach to make shading "3D"
-  // like the shainding on the rest of the map
-
+  // river and river shading
   if(rivers > 0){
     if(length(pos.wld - pos.c) < river_width){
       color = zoneColor(zone0,river_depth);
@@ -244,8 +239,6 @@ vec3 color_hex(vec2 wld,float shade,HexPos pos){
       g = normalize(g);
       float fade = (lperp - river_width)/(river_shade - river_width);
       shade_dir = mix(g,normalize(shade_dir),fade);
-      // color = vec3(g.x+0.5,g.y+0.5,0.0);
-      // return;
     }
   }
 
@@ -253,7 +246,7 @@ vec3 color_hex(vec2 wld,float shade,HexPos pos){
   return color;
 }
 
-const float edge_size = 0.1;
+const float edge_offset = 0.03;
 
 void main(void){
   vec3 wld_shade = img2wld_shade(tex2img(vTextureCoord.xy,filterArea));
@@ -263,98 +256,48 @@ void main(void){
   if(wld.y < 0.0 || wld.y > map_dims.y * 0.5/s)
     gl_FragColor = vec4(1.0,1.0,1.0,1.0);
   else{
-    
-    // vec4 n23 = closest_neighbors(axl,wld);
-    // vec2 np1 = axl2wld(axl);
-    // vec2 np2 = axl2wld(n23.xy);
-    // vec2 np3 = axl2wld(n23.zw);
-
-    // float dist1 = noisy_dist(wld,np1);
-    // float dist2 = noisy_dist(wld,np2);
-    // float dist3 = noisy_dist(wld,np3);
-    // // float edge;
-    // vec2 hex;
-    // if(dist1 < dist2 && dist1 < dist3){
-    //   // if(dist2 < dist3) edge = dist2 - dist1;
-    //   // else edge = dist3 - dist1;
-    //   hex = axl2hex(axl);
-    // }
-    // else if(dist2 < dist3){
-    //   // if(dist3 < dist1) edge = dist3 - dist2;
-    //   // else edge = dist1 - dist2;
-    //   hex = axl2hex(n23.xy);
-    // }
-    // else{
-    //   // if(dist2 < dist1) edge = dist2 - dist3;
-    //   // else edge = dist1 - dist3;
-    //   hex = axl2hex(n23.zw);
-    // }
-
-    // hex.x = mod(hex.x,map_dims.x);
-    // if(hex.x < 0.0) hex.x += map_dims.x;
-
-    // TODO: it's possible with just one additional texture lookup,
-    // that we can do neighbor blending...??
-
-    // position relative to center
     vec2 dir = pos.wld - pos.c;
 
-    // get point along edge
-    // TODO: we can find the edge point by
-    // 1. find the cannonical direction (as below)
-    // 2. find the two points along the spokes, by adjust the angle by π/12
-    // and using the radius (should be based on side constant)
-    // 3. project the current point onto the edge defined by these two points.
-
+    // find distance from edge
     float angle = mod(atan(dir.y,dir.x) - 3.0*pi/2.0,2.0*pi);
     float n = floor(angle/(pi/3.0));
     float a_angle = n*(pi/3.0) + 3.0*pi/2.0;
     float b_angle = a_angle + pi/3.0;
     vec2 a = vec2(s*cos(a_angle),s*sin(a_angle));
     vec2 b = vec2(s*cos(b_angle),s*sin(b_angle));
-    vec2 edgep = dir-(a+proj(b-a,dir-a));
+    vec2 at_edge = (a+proj(b-a,dir-a));
+    vec2 edgep = dir-at_edge;
 
-    // move to closest neighbor if edge dist + noise too distant
-
+    // calculate noise step towards the edge
     float enoise = fbm(3.0,pos.c+dir-edgep,0.3,0.5);
-    float taper = min(length(dir-edgep - a),length(dir-edgep - b))/s;
+    float taper = 2.0*min(length(dir-edgep - a),length(dir-edgep - b))/s;
+    enoise = enoise*smoothstep(taper,0.0,0.2);
+    if(edgep.x < 0.0) edgep *= -1.0;
+    vec2 edge_dir = normalize(edgep);
+    vec2 offset = edge_dir*enoise;
 
-    // if(length(edgep) < 0.2){
-    //   gl_FragColor.rgb = vec3(enoise,enoise,enoise);
-    //   return;
-    // }
+    // (possibly) move to a new hex based on the noisy step
+    // and find a color from the resulting hex
+    vec2 offset_axl = wld2axl(pos.c + dir + offset);
+    HexPos edge_pos;
+    if(offset_axl != pos.axl){
+      HexPos new_pos = wld2pos(pos.c + dir + offset,wld);
+      gl_FragColor.rgb = color_hex(wld,wld_shade.z,new_pos);
+      edge_pos = pos;
+    }else{
+      gl_FragColor.rgb = color_hex(wld,wld_shade.z,pos);
+      edge_pos = wld2pos(pos.c + at_edge + 0.1*edge_dir,wld);
+    }
 
-    // TODO: not yet, quite the kidn of noise I want
-    // needs to be one-dimensional
-
-    enoise = enoise*smoothstep(taper,0.0,0.1);
-    float edgel = length(edgep);
-    edgep = normalize(edgep);
-    
-    vec2 offset = edgep*enoise;
-    // reflect the offset to ensure deflections on the hex
-    // sharing a side match
-    if(offset.x < 0.0) offset *= -1.0;
-
-    // (possible) move to a new hex
-    HexPos new_pos = wld2pos(pos.c + dir + offset,wld);
-
-    gl_FragColor.rgb = color_hex(wld,wld_shade.z,new_pos);
-
-    
-    // if(edgel > edge_size){
-    //   if(new_pos.c != pos.c) edgep = -edgep;
-    //   HexPos edge = wld2pos(pos.c + edgep,wld);
-    //   vec3 fade_with = color_hex(wld,wld_shade.z,edge);
-    //   gl_FragColor.rgb = mix(gl_FragColor.rgb,fade_with,0.5);
-    // }
-
-    // TODO: instead of setting the color below
-    // note the color in this region, and note
-    // the slope in this region.
-    // at a later point this slope
-    // will be modified (by the river)
-    // and then shaded at the end
-
+    // mix the color with the neighboring hex
+    // if we're close enough to the edge
+    float edist = length(dir + offset - at_edge);
+    if(edist < edge_offset){
+      vec3 col = color_hex(wld,wld_shade.z,edge_pos);
+      // gl_FragColor.rgb = vec3(0.0,0.0,0.0);
+      float mixing = 0.5 + 0.5*edist/edge_offset;
+      // gl_FragColor.rgb = vec3(edist,edist,edist);
+      gl_FragColor.rgb = mix(col,gl_FragColor.rgb,mixing);
+    }
   }
 }
